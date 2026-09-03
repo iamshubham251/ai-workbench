@@ -1,0 +1,25 @@
+# Node
+node_modules/
+dist/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Data
+data/uploads/*
+data/knowledge_base/*
+data/outputs/*
+!data/uploads/.gitkeep
+!data/knowledge_base/.gitkeep
+!data/outputs/.gitkeep
