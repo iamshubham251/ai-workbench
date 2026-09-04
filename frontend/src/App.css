@@ -327,6 +327,56 @@
   margin-bottom: 16px;
 }
 
+.upload-dropzone.dragging {
+  border-color: var(--accent-color);
+  background-color: var(--accent-muted);
+}
+
+.upload-dropzone.uploading {
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.upload-link {
+  color: var(--accent-color);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.upload-result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.upload-result-label {
+  color: var(--text-muted);
+  width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.upload-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 0.7s linear infinite;
+}
+
 .upload-formats {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -471,6 +521,62 @@
   justify-content: center;
   height: 100%;
   text-align: center;
+  color: var(--text-secondary);
+}
+
+/* Document Library Table */
+.doc-library-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.doc-library-header {
+  display: grid;
+  grid-template-columns: 2fr 80px 90px 1fr 100px;
+  padding: 10px 20px;
+  background-color: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.doc-library-row {
+  display: grid;
+  grid-template-columns: 2fr 80px 90px 1fr 100px;
+  padding: 14px 20px;
+  background-color: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  transition: background-color 0.15s;
+}
+
+.doc-library-row:last-child {
+  border-bottom: none;
+}
+
+.doc-library-row:hover {
+  background-color: var(--bg-hover);
+}
+
+.doc-library-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-library-cell {
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 

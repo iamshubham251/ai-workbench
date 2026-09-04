@@ -2,6 +2,7 @@
 node_modules/
 dist/
 .env
+frontend/.env
 
 # Python
 __pycache__/
@@ -11,12 +12,15 @@ __pycache__/
 venv/
 ENV/
 env/
+*.db
+*.sqlite3
+.pytest_cache/
 
 # IDEs
 .vscode/
 .idea/
 
-# Data
+# Data — contents ignored, directories tracked via .gitkeep
 data/uploads/*
 data/knowledge_base/*
 data/outputs/*
