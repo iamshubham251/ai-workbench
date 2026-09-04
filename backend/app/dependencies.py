@@ -13,8 +13,7 @@ from app.storage.local_storage import LocalStorage
 
 
 def get_document_service() -> DocumentService:
-    db_path = settings.DATABASE_URL.replace("sqlite:///", "")
-    repository = DocumentRepository(db_path=db_path)
+    repository = DocumentRepository(db_path=settings.DATABASE_PATH)
     storage = LocalStorage(upload_dir=Path(settings.UPLOAD_DIR))
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
     return DocumentService(

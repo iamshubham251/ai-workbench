@@ -213,8 +213,28 @@ def test_file_exists_on_disk(client, tmp_env):
     assert len(files) == 1, "Expected exactly one stored file"
 
 
+# ===========================================================================
+# 14. Metadata failure rolls back the stored file
+# ===========================================================================
+
+def test_metadata_failure_cleans_up_stored_file(client, tmp_env, monkeypatch):
+    from app.repositories.document_repository import DocumentRepository
+
+    def fail_create(self, doc):
+        raise RuntimeError("database unavailable")
+
+    monkeypatch.setattr(DocumentRepository, "create", fail_create)
+    r = client.post(
+        "/api/documents/upload",
+        files=[make_file(PDF_BYTES, "rollback.pdf", "application/pdf")],
+    )
+
+    assert r.status_code == 500
+    assert list(tmp_env["uploads"].iterdir()) == []
+
+
 # ==========================================================================
-# 14. DELETE document
+# 15. DELETE document
 # ==========================================================================
 
 def test_delete_document(client):

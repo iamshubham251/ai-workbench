@@ -38,7 +38,9 @@ class LocalStorage:
 
         # Guard: ensure resolved path stays inside upload_dir
         resolved = file_path.resolve()
-        if not str(resolved).startswith(str(self.upload_dir.resolve())):
+        try:
+            resolved.relative_to(self.upload_dir.resolve())
+        except ValueError:
             raise ValueError("Path traversal attempt detected")
 
         await file.seek(0)
@@ -47,6 +49,14 @@ class LocalStorage:
                 buf.write(chunk)
 
         return sanitized, str(file_path)
+
+    def file_exists(self, storage_path: str) -> bool:
+        """Return whether a stored file still exists inside the upload root."""
+        try:
+            Path(storage_path).resolve().relative_to(self.upload_dir.resolve())
+        except ValueError:
+            return False
+        return Path(storage_path).is_file()
 
     def delete_document_dir(self, document_id: UUID) -> None:
         """Remove the directory for a document (rollback / cleanup)."""
@@ -66,7 +76,7 @@ class LocalStorage:
         Never trusts the original filename as a filesystem path.
         """
         # Strip any directory component (handles both / and \)
-        basename = Path(filename).name
+        basename = Path(filename.replace("\\", "/")).name
         # Collapse unsafe characters
         safe = re.sub(r"[^a-zA-Z0-9.\-_]", "_", basename)
         return safe or "unnamed_file"

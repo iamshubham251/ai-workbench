@@ -58,6 +58,8 @@ class DocumentService:
             stored_name, storage_path = await self._storage.save_file(
                 file, document_id
             )
+            if not self._storage.file_exists(storage_path):
+                raise RuntimeError("Stored file could not be verified")
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
         except Exception:

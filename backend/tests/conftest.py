@@ -29,7 +29,7 @@ def tmp_env(tmp_path: Path, monkeypatch):
     upload_dir = tmp_path / "uploads"
     upload_dir.mkdir()
 
-    monkeypatch.setattr(settings, "DATABASE_URL", f"sqlite:///{db_file}")
+    monkeypatch.setattr(settings, "DATABASE_PATH", db_file)
     monkeypatch.setattr(settings, "UPLOAD_DIR", str(upload_dir))
     monkeypatch.setattr(settings, "MAX_UPLOAD_SIZE_MB", 1)
 

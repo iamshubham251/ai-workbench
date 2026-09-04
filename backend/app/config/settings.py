@@ -4,8 +4,9 @@ from typing import List
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Workbench"
+    APP_ENV: str = "development"
     MAX_UPLOAD_SIZE_MB: int = 25
-    DATABASE_URL: str = "sqlite:///./ai_workbench.db"
+    DATABASE_PATH: str = "./ai_workbench.db"
     UPLOAD_DIR: str = "../data/uploads"
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:5173",

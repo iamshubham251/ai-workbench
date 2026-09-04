@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
 from app.api.routes import health, documents
+from app.repositories.document_repository import DocumentRepository
 
 
 def create_app() -> FastAPI:
@@ -19,6 +20,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.on_event("startup")
+    def initialize_database() -> None:
+        """Create the local metadata schema before accepting requests."""
+        DocumentRepository(db_path=settings.DATABASE_PATH)
 
     app.include_router(health.router, prefix="/api")
     app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
