@@ -70,7 +70,7 @@ class DocumentRepository:
     def list_documents(self) -> List[Document]:
         with self._connect() as conn:
             rows = conn.execute(
-                "SELECT * FROM documents ORDER BY created_at DESC"
+                "SELECT * FROM documents ORDER BY created_at DESC, rowid DESC"
             ).fetchall()
         return [self._row_to_doc(r) for r in rows]
 

@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "../data/uploads"
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:5173",
+        "http://localhost:5174",
         "http://127.0.0.1:5173",
     ]
 

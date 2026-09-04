@@ -580,6 +580,38 @@
   color: var(--text-secondary);
 }
 
+@media (max-width: 640px) {
+  .doc-library-header {
+    display: none;
+  }
+
+  .doc-library-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 16px;
+    padding: 16px;
+  }
+
+  .doc-library-name {
+    grid-column: 1 / -1;
+  }
+
+  .doc-library-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .doc-library-cell::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+}
+
 .placeholder-page h2 {
   font-size: 1.5rem;
   color: var(--text-primary);

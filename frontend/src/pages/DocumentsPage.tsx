@@ -87,7 +87,7 @@ export const DocumentsPage: React.FC = () => {
       {loadState === 'success' && docs.length > 0 && (
         <div className="doc-library-table">
           <div className="doc-library-header">
-            <span>Name</span>
+            <span>Document</span>
             <span>Type</span>
             <span>Size</span>
             <span>Uploaded</span>
@@ -99,10 +99,10 @@ export const DocumentsPage: React.FC = () => {
                 <FileText size={16} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
                 <span>{doc.original_filename}</span>
               </span>
-              <span className="doc-library-cell">{doc.extension.toUpperCase().replace('.', '')}</span>
-              <span className="doc-library-cell">{formatBytes(doc.size_bytes)}</span>
-              <span className="doc-library-cell">{formatDate(doc.created_at)}</span>
-              <span className="doc-library-cell">
+              <span className="doc-library-cell" data-label="Type">{doc.extension.toUpperCase().replace('.', '')}</span>
+              <span className="doc-library-cell" data-label="Size">{formatBytes(doc.size_bytes)}</span>
+              <span className="doc-library-cell" data-label="Uploaded">{formatDate(doc.created_at)}</span>
+              <span className="doc-library-cell" data-label="Status">
                 <span className="badge badge-success">{doc.status}</span>
               </span>
             </div>
