@@ -5,3 +5,6 @@ pytest
 httpx
 pydantic-settings
 pypdf
+PyMuPDF==1.28.2
+pytesseract==0.3.13
+Pillow==12.3.0
