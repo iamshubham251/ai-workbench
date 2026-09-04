@@ -1,7 +1,17 @@
-"""Domain types for future PDF text extraction."""
+"""Domain types for PDF text extraction and classification."""
 
 from dataclasses import dataclass
+from enum import Enum
 from uuid import UUID
+
+
+class PdfContentType(str, Enum):
+    """Classification of the textual content available in a PDF."""
+
+    TEXT = "text"
+    SCANNED = "scanned"
+    MIXED = "mixed"
+    EMPTY = "empty"
 
 
 @dataclass(frozen=True)
@@ -18,12 +28,23 @@ class PdfPage:
 
 @dataclass(frozen=True)
 class PdfProcessingResult:
-    """The text-extraction result for a stored PDF document."""
+    """The text-extraction and content-classification result for a PDF."""
 
     document_id: UUID
     pages: tuple[PdfPage, ...] = ()
     warnings: tuple[str, ...] = ()
+    content_type: PdfContentType = PdfContentType.EMPTY
 
     @property
     def page_count(self) -> int:
         return len(self.pages)
+
+    @property
+    def text_page_count(self) -> int:
+        """Number of pages containing meaningful extracted text."""
+        return sum(bool(page.text.strip()) for page in self.pages)
+
+    @property
+    def empty_page_count(self) -> int:
+        """Number of pages without meaningful extracted text."""
+        return self.page_count - self.text_page_count

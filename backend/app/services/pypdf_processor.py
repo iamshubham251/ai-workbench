@@ -7,6 +7,7 @@ from pypdf.errors import PdfReadError
 
 from app.models.document import Document
 from app.models.pdf_processing import PdfPage, PdfProcessingResult
+from app.services.pdf_content_detector import PdfContentDetector
 from app.services.pdf_processor import PdfProcessor
 
 
@@ -15,7 +16,13 @@ class PdfProcessingError(RuntimeError):
 
 
 class PypdfProcessor(PdfProcessor):
-    """Extract page text from a stored PDF without modifying it."""
+    """Extract and classify page text from a stored PDF."""
+
+    def __init__(
+        self,
+        content_detector: PdfContentDetector | None = None,
+    ) -> None:
+        self.content_detector = content_detector or PdfContentDetector()
 
     def process(self, document: Document) -> PdfProcessingResult:
         source_path = Path(document.storage_path)
@@ -29,6 +36,7 @@ class PypdfProcessor(PdfProcessor):
 
         pages: list[PdfPage] = []
         warnings: list[str] = []
+
         for page_number, page in enumerate(reader.pages, start=1):
             try:
                 text = page.extract_text() or ""
@@ -37,10 +45,19 @@ class PypdfProcessor(PdfProcessor):
                 warnings.append(
                     f"Page {page_number}: text could not be extracted"
                 )
-            pages.append(PdfPage(page_number=page_number, text=text))
+
+            pages.append(
+                PdfPage(
+                    page_number=page_number,
+                    text=text,
+                )
+            )
+
+        page_tuple = tuple(pages)
 
         return PdfProcessingResult(
             document_id=document.id,
-            pages=tuple(pages),
+            pages=page_tuple,
             warnings=tuple(warnings),
+            content_type=self.content_detector.classify(page_tuple),
         )
