@@ -365,6 +365,31 @@ def test_knowledge_query_missing_document_returns_404(client):
 
     assert response.status_code == 404
 
+def test_knowledge_base_query_rejects_invalid_top_k(client):
+    """Global knowledge-base query rejects invalid top_k values."""
+    response = client.post(
+        "/api/knowledge/query",
+        json={
+            "query": "What is the emergency shutdown procedure?",
+            "top_k": 0,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_knowledge_base_query_rejects_empty_query(client):
+    """Global knowledge-base query rejects empty queries."""
+    response = client.post(
+        "/api/knowledge/query",
+        json={
+            "query": "",
+            "top_k": 5,
+        },
+    )
+
+    assert response.status_code == 422
+
 def test_knowledge_base_query_returns_results_across_documents(client, tmp_path):
     """Knowledge-base query searches indexed chunks across documents."""
     import fitz
@@ -438,3 +463,4 @@ def test_knowledge_base_query_returns_results_across_documents(client, tmp_path)
     assert result["document_id"] == document_ids[1]
     assert "Emergency shutdown" in result["text"]
     assert result["page_numbers"] == [1]
+
