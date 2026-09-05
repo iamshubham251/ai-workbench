@@ -61,8 +61,8 @@ class Retriever:
             )
 
         results.sort(
-            key=lambda result: result.score,
-            reverse=True,
+            key=lambda result: (-result.score, result.chunk_index),
         )
 
         return tuple(results[:top_k])
+

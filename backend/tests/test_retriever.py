@@ -174,3 +174,52 @@ def test_retriever_preserves_chunk_metadata():
     assert result.page_numbers == (4, 5)
     assert result.section_title == "Safety Requirements"
     assert result.score == pytest.approx(1.0)
+
+def test_retriever_uses_chunk_index_as_deterministic_tiebreaker():
+    """Equal similarity scores must produce stable chunk ordering."""
+    document_id = uuid4()
+
+    chunks = (
+        DocumentChunk(
+            document_id=document_id,
+            chunk_index=2,
+            text="Second chunk",
+        ),
+        DocumentChunk(
+            document_id=document_id,
+            chunk_index=0,
+            text="First chunk",
+        ),
+        DocumentChunk(
+            document_id=document_id,
+            chunk_index=1,
+            text="Middle chunk",
+        ),
+    )
+
+    embeddings = (
+        DocumentEmbedding(
+            document_id=document_id,
+            chunk_index=2,
+            vector=(1.0, 0.0),
+        ),
+        DocumentEmbedding(
+            document_id=document_id,
+            chunk_index=0,
+            vector=(1.0, 0.0),
+        ),
+        DocumentEmbedding(
+            document_id=document_id,
+            chunk_index=1,
+            vector=(1.0, 0.0),
+        ),
+    )
+
+    results = Retriever().retrieve(
+        query_embedding=(1.0, 0.0),
+        chunks=chunks,
+        embeddings=embeddings,
+        top_k=3,
+    )
+
+    assert [result.chunk_index for result in results] == [0, 1, 2]
