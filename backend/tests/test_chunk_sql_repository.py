@@ -254,3 +254,52 @@ def test_repository_delete_unknown_document_is_safe() -> None:
     repository.delete_by_document_id(uuid4())
 
     connection.close()
+
+def test_repository_returns_chunks_across_documents_in_stable_order() -> None:
+    document_a = uuid4()
+    document_b = uuid4()
+
+    chunks_a = (
+        DocumentChunk(
+            document_id=document_a,
+            chunk_index=1,
+            text="Document A second chunk.",
+        ),
+        DocumentChunk(
+            document_id=document_a,
+            chunk_index=0,
+            text="Document A first chunk.",
+        ),
+    )
+
+    chunks_b = (
+        DocumentChunk(
+            document_id=document_b,
+            chunk_index=0,
+            text="Document B first chunk.",
+        ),
+    )
+
+    connection, repository = create_repository()
+
+    repository.save(document_a, chunks_a)
+    repository.save(document_b, chunks_b)
+
+    results = repository.get_all()
+
+    expected_documents = sorted(
+        (
+            (document_a, 0, "Document A first chunk."),
+            (document_a, 1, "Document A second chunk."),
+            (document_b, 0, "Document B first chunk."),
+        ),
+        key=lambda item: (str(item[0]), item[1]),
+    )
+
+    assert [
+        (chunk.document_id, chunk.chunk_index, chunk.text)
+        for chunk in results
+    ] == expected_documents
+
+    connection.close()
+

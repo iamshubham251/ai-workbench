@@ -101,6 +101,37 @@ class SqlChunkRepository:
             for row in rows
         )
 
+    def get_all(self) -> tuple[DocumentChunk, ...]:
+        """Return all stored chunks in stable document and chunk order."""
+        cursor = self.connection.execute(
+            """
+            SELECT
+                document_id,
+                chunk_index,
+                text,
+                page_numbers,
+                section_title
+            FROM document_chunks
+            ORDER BY document_id ASC, chunk_index ASC
+            """
+        )
+
+        rows = cursor.fetchall()
+
+        return tuple(
+            DocumentChunk(
+                document_id=UUID(row[0]),
+                chunk_index=row[1],
+                text=row[2],
+                page_numbers=tuple(
+                    int(page)
+                    for page in row[3].split(",")
+                    if page
+                ),
+                section_title=row[4],
+            )
+            for row in rows
+        )
     def delete_by_document_id(
         self,
         document_id: UUID,
@@ -130,3 +161,4 @@ class SqlChunkRepository:
         )
 
         return int(cursor.fetchone()[0])
+
