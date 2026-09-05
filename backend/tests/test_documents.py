@@ -309,6 +309,9 @@ def test_knowledge_query_returns_semantic_results(client, tmp_path):
     assert query_response.status_code == 200
 
     query_body = query_response.json()
+    assert query_body["answer"]
+    assert "Safety inspection procedure requires checking" in query_body["answer"]
+    assert "page(s): 1" in query_body["answer"]
     assert query_body["query"] == "What does the safety inspection procedure check?"
     assert query_body["result_count"] >= 1
     assert len(query_body["results"]) >= 1

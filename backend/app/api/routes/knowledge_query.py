@@ -37,6 +37,7 @@ def query_knowledge(
 
     return KnowledgeQueryResponse(
         query=result.query,
+        answer=result.answer,
         result_count=result.result_count,
         results=tuple(
             KnowledgeQueryResult(

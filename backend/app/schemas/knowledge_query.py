@@ -22,8 +22,9 @@ class KnowledgeQueryResult(BaseModel):
 
 
 class KnowledgeQueryResponse(BaseModel):
-    """Semantic search response."""
+    """Semantic search response with a grounded answer."""
 
     query: str
+    answer: str
     result_count: int
     results: tuple[KnowledgeQueryResult, ...]

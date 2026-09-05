@@ -1,12 +1,26 @@
 import sqlite3
 from uuid import uuid4
 
+import pytest
+
 from app.models.document_chunk import DocumentChunk
-from app.models.embedding import DocumentEmbedding
 from app.repositories.chunk_sql_repository import SqlChunkRepository
 from app.repositories.embedding_repository import EmbeddingRepository
+from app.services.deterministic_answer_generator import (
+    DeterministicAnswerGenerator,
+)
 from app.services.query_embedding_service import QueryEmbeddingService
 from app.services.rag_service import RagService
+
+
+def build_rag_service(connection: sqlite3.Connection) -> RagService:
+    """Build a RAG service with the deterministic generator."""
+    return RagService(
+        chunk_repository=SqlChunkRepository(connection),
+        embedding_repository=EmbeddingRepository(connection),
+        query_embedding_service=QueryEmbeddingService(),
+        answer_generator=DeterministicAnswerGenerator(),
+    )
 
 
 def test_rag_service_retrieves_relevant_chunk():
@@ -43,7 +57,6 @@ def test_rag_service_retrieves_relevant_chunk():
     chunk_repository.save(document_id, chunks)
 
     query_service = QueryEmbeddingService()
-
     chunk_embeddings = query_service.provider.embed_batch(chunks)
 
     embedding_repository.save(
@@ -55,6 +68,7 @@ def test_rag_service_retrieves_relevant_chunk():
         chunk_repository=chunk_repository,
         embedding_repository=embedding_repository,
         query_embedding_service=query_service,
+        answer_generator=DeterministicAnswerGenerator(),
     )
 
     response = rag_service.query(
@@ -67,6 +81,10 @@ def test_rag_service_retrieves_relevant_chunk():
         "What is the conveyor belt inspection procedure?"
     )
     assert response.result_count == 1
+    assert response.answer
+    assert "Conveyor belt inspection" in response.answer
+    assert "Inspection Procedure" in response.answer
+    assert "page(s): 1" in response.answer
 
     result = response.results[0]
 
@@ -80,16 +98,7 @@ def test_rag_service_retrieves_relevant_chunk():
 def test_rag_service_returns_empty_for_unknown_document():
     connection = sqlite3.connect(":memory:")
 
-    chunk_repository = SqlChunkRepository(connection)
-    embedding_repository = EmbeddingRepository(connection)
-
-    query_service = QueryEmbeddingService()
-
-    rag_service = RagService(
-        chunk_repository=chunk_repository,
-        embedding_repository=embedding_repository,
-        query_embedding_service=query_service,
-    )
+    rag_service = build_rag_service(connection)
 
     response = rag_service.query(
         document_id=uuid4(),
@@ -97,22 +106,18 @@ def test_rag_service_returns_empty_for_unknown_document():
     )
 
     assert response.result_count == 0
+    assert response.answer == (
+        "No supporting evidence was found for this query."
+    )
 
 
 def test_rag_service_rejects_empty_query():
     connection = sqlite3.connect(":memory:")
 
-    rag_service = RagService(
-        chunk_repository=SqlChunkRepository(connection),
-        embedding_repository=EmbeddingRepository(connection),
-        query_embedding_service=QueryEmbeddingService(),
-    )
+    rag_service = build_rag_service(connection)
 
-    try:
+    with pytest.raises(ValueError, match="query must not be empty"):
         rag_service.query(
             document_id=uuid4(),
             query="   ",
         )
-        assert False, "Expected ValueError"
-    except ValueError as exc:
-        assert str(exc) == "query must not be empty"

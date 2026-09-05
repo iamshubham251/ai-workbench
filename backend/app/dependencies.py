@@ -7,6 +7,9 @@ from app.config.settings import settings
 from app.repositories.chunk_sql_repository import SqlChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.embedding_repository import EmbeddingRepository
+from app.services.deterministic_answer_generator import (
+    DeterministicAnswerGenerator,
+)
 from app.services.document_chunker import DocumentChunker
 from app.services.document_normalizer import DocumentNormalizer
 from app.services.document_service import DocumentService
@@ -70,6 +73,7 @@ def get_rag_service():
             chunk_repository=chunk_repository,
             embedding_repository=embedding_repository,
             query_embedding_service=QueryEmbeddingService(),
+            answer_generator=DeterministicAnswerGenerator(),
         )
     finally:
         connection.close()
