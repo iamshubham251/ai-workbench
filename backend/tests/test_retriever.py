@@ -223,3 +223,68 @@ def test_retriever_uses_chunk_index_as_deterministic_tiebreaker():
     )
 
     assert [result.chunk_index for result in results] == [0, 1, 2]
+
+def test_retriever_filters_results_below_minimum_score():
+    document_id = uuid4()
+
+    chunks = (
+        DocumentChunk(
+            document_id=document_id,
+            chunk_index=0,
+            text="Highly relevant chunk",
+        ),
+        DocumentChunk(
+            document_id=document_id,
+            chunk_index=1,
+            text="Weakly relevant chunk",
+        ),
+    )
+
+    embeddings = (
+        DocumentEmbedding(
+            document_id=document_id,
+            chunk_index=0,
+            vector=(1.0, 0.0),
+        ),
+        DocumentEmbedding(
+            document_id=document_id,
+            chunk_index=1,
+            vector=(0.6, 0.8),
+        ),
+    )
+
+    results = Retriever().retrieve(
+        query_embedding=(1.0, 0.0),
+        chunks=chunks,
+        embeddings=embeddings,
+        top_k=5,
+        min_score=0.9,
+    )
+
+    assert len(results) == 1
+    assert results[0].chunk_index == 0
+    assert results[0].score >= 0.9
+
+
+def test_retriever_rejects_invalid_min_score():
+    document_id = uuid4()
+
+    with pytest.raises(ValueError, match="min_score"):
+        Retriever().retrieve(
+            query_embedding=(1.0, 0.0),
+            chunks=(
+                DocumentChunk(
+                    document_id=document_id,
+                    chunk_index=0,
+                    text="Test chunk",
+                ),
+            ),
+            embeddings=(
+                DocumentEmbedding(
+                    document_id=document_id,
+                    chunk_index=0,
+                    vector=(1.0, 0.0),
+                ),
+            ),
+            min_score=1.1,
+        )

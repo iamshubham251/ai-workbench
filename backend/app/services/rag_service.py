@@ -28,6 +28,8 @@ class RagResponse:
 class RagService:
     """Connect query embedding, semantic retrieval, and answer generation."""
 
+    DEFAULT_MIN_SCORE = 0.35
+
     def __init__(
         self,
         chunk_repository: SqlChunkRepository,
@@ -35,12 +37,19 @@ class RagService:
         query_embedding_service: QueryEmbeddingService,
         answer_generator: AnswerGenerator,
         retriever: Retriever | None = None,
+        min_score: float = DEFAULT_MIN_SCORE,
     ) -> None:
+        if not 0.0 <= min_score <= 1.0:
+            raise ValueError(
+                "min_score must be between 0.0 and 1.0"
+            )
+
         self.chunk_repository = chunk_repository
         self.embedding_repository = embedding_repository
         self.query_embedding_service = query_embedding_service
         self.answer_generator = answer_generator
         self.retriever = retriever or Retriever()
+        self.min_score = min_score
 
     def query(
         self,
@@ -75,7 +84,15 @@ class RagService:
             chunks=chunks,
             embeddings=embeddings,
             top_k=top_k,
+            min_score=self.min_score,
         )
+
+        if not results:
+            return RagResponse(
+                query=query,
+                answer="No supporting evidence was found for this query.",
+                results=(),
+            )
 
         answer = self.answer_generator.generate(
             query=query,

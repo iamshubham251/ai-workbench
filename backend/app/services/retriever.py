@@ -27,9 +27,15 @@ class Retriever:
         chunks: tuple[DocumentChunk, ...],
         embeddings: tuple[DocumentEmbedding, ...],
         top_k: int = 5,
+        min_score: float = 0.0,
     ) -> tuple[RetrievalResult, ...]:
+        """Return the most relevant chunks above the minimum score."""
+
         if top_k < 1:
             raise ValueError("top_k must be positive")
+
+        if not 0.0 <= min_score <= 1.0:
+            raise ValueError("min_score must be between 0.0 and 1.0")
 
         chunk_map = {
             chunk.chunk_index: chunk
@@ -49,6 +55,9 @@ class Retriever:
                 embedding.vector,
             )
 
+            if score < min_score:
+                continue
+
             results.append(
                 RetrievalResult(
                     document_id=chunk.document_id,
@@ -65,4 +74,3 @@ class Retriever:
         )
 
         return tuple(results[:top_k])
-

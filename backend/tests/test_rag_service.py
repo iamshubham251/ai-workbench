@@ -4,6 +4,7 @@ from uuid import uuid4
 import pytest
 
 from app.models.document_chunk import DocumentChunk
+from app.models.embedding import DocumentEmbedding
 from app.repositories.chunk_sql_repository import SqlChunkRepository
 from app.repositories.embedding_repository import EmbeddingRepository
 from app.services.deterministic_answer_generator import (
@@ -121,3 +122,51 @@ def test_rag_service_rejects_empty_query():
             document_id=uuid4(),
             query="   ",
         )
+
+def test_rag_service_returns_grounded_fallback_when_evidence_is_weak():
+    connection = sqlite3.connect(":memory:")
+
+    chunk_repository = SqlChunkRepository(connection)
+    embedding_repository = EmbeddingRepository(connection)
+
+    document_id = uuid4()
+
+    chunks = (
+        DocumentChunk(
+            document_id=document_id,
+            chunk_index=0,
+            text="Employee attendance records must be submitted daily.",
+            page_numbers=(1,),
+            section_title="Attendance",
+        ),
+    )
+
+    chunk_repository.save(document_id, chunks)
+
+    query_service = QueryEmbeddingService()
+    chunk_embeddings = query_service.provider.embed_batch(chunks)
+
+    embedding_repository.save(
+        document_id,
+        chunk_embeddings,
+    )
+
+    rag_service = RagService(
+        chunk_repository=chunk_repository,
+        embedding_repository=embedding_repository,
+        query_embedding_service=query_service,
+        answer_generator=DeterministicAnswerGenerator(),
+    )
+
+    response = rag_service.query(
+        document_id=document_id,
+        query="What is the conveyor belt inspection procedure?",
+        top_k=3,
+    )
+
+    assert response.result_count == 0
+    assert response.answer == (
+        "No supporting evidence was found for this query."
+    )
+
+
