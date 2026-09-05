@@ -4,11 +4,7 @@ import pytest
 
 from app.ai.model_provider import ModelProvider
 from app.ai.model_router import ModelRouter, ModelRoutingError
-from app.models.model import (
-    ModelCapability,
-    ModelRequest,
-    ModelResponse,
-)
+from app.models.model import ModelCapability, ModelRequest, ModelResponse
 from app.models.model_routing import ModelRoutingRequest
 
 
@@ -45,41 +41,49 @@ class FakeCodingModel:
 
 
 def test_model_router_selects_document_model():
-    router = ModelRouter(
-        providers=(FakeDocumentModel(), FakeCodingModel())
-    )
-
+    router = ModelRouter(providers=(FakeDocumentModel(), FakeCodingModel()))
     decision = router.route(
         ModelRoutingRequest(
             capability=ModelCapability.DOCUMENT,
             prompt="Review the inspection report.",
         )
     )
-
     assert decision.model_name == "fake-document-model"
     assert decision.capability == ModelCapability.DOCUMENT
 
 
 def test_model_router_selects_coding_model():
-    router = ModelRouter(
-        providers=(FakeDocumentModel(), FakeCodingModel())
-    )
-
+    router = ModelRouter(providers=(FakeDocumentModel(), FakeCodingModel()))
     decision = router.route(
         ModelRoutingRequest(
             capability=ModelCapability.CODE,
             prompt="Fix this Python function.",
         )
     )
-
     assert decision.model_name == "fake-coding-model"
     assert decision.capability == ModelCapability.CODE
 
 
+def test_model_router_returns_selected_provider():
+    document_model = FakeDocumentModel()
+    router = ModelRouter(providers=(document_model, FakeCodingModel()))
+
+    provider = router.get_provider(ModelCapability.DOCUMENT)
+
+    assert provider is document_model
+
+
+def test_model_router_returns_coding_provider():
+    coding_model = FakeCodingModel()
+    router = ModelRouter(providers=(FakeDocumentModel(), coding_model))
+
+    provider = router.get_provider(ModelCapability.CODE)
+
+    assert provider is coding_model
+
+
 def test_model_router_rejects_unsupported_capability():
-    router = ModelRouter(
-        providers=(FakeDocumentModel(),)
-    )
+    router = ModelRouter(providers=(FakeDocumentModel(),))
 
     with pytest.raises(
         ModelRoutingError,
@@ -93,16 +97,23 @@ def test_model_router_rejects_unsupported_capability():
         )
 
 
+def test_model_router_get_provider_rejects_unsupported_capability():
+    router = ModelRouter(providers=(FakeDocumentModel(),))
+
+    with pytest.raises(
+        ModelRoutingError,
+        match="No model provider supports capability 'code'",
+    ):
+        router.get_provider(ModelCapability.CODE)
+
+
 def test_model_router_rejects_duplicate_capability():
     with pytest.raises(
         ModelRoutingError,
         match="Multiple model providers registered for capability 'document'",
     ):
         ModelRouter(
-            providers=(
-                FakeDocumentModel(),
-                FakeDocumentModel(),
-            )
+            providers=(FakeDocumentModel(), FakeDocumentModel())
         )
 
 
