@@ -10,3 +10,5 @@ pytesseract==0.3.13
 Pillow==12.3.0
 sentence-transformers==5.1.0
 torch==2.14.0
+
+google-genai==2.22.0

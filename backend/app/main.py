@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
-from app.api.routes import health, documents, knowledge, knowledge_query
+from app.api.routes import agents, documents, health, knowledge, knowledge_query
 from app.repositories.document_repository import DocumentRepository
 
 
@@ -41,6 +41,11 @@ def create_app() -> FastAPI:
         knowledge_query.router,
         prefix="/api/knowledge",
         tags=["knowledge"],
+    )
+    app.include_router(
+        agents.router,
+        prefix="/api/agents",
+        tags=["agents"],
     )
 
     return app

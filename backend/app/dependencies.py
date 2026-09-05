@@ -3,6 +3,9 @@
 import sqlite3
 from pathlib import Path
 
+from app.ai.gemini_provider import GeminiModelProvider
+from app.agents.agent_manager import AgentManager
+from app.ai.model_router import ModelRouter
 from app.config.settings import settings
 from app.repositories.chunk_sql_repository import SqlChunkRepository
 from app.repositories.document_repository import DocumentRepository
@@ -77,3 +80,11 @@ def get_rag_service():
         )
     finally:
         connection.close()
+
+
+def get_agent_manager() -> AgentManager:
+    """Create the application agent manager with the configured Gemini provider."""
+    gemini_provider = GeminiModelProvider()
+    model_router = ModelRouter(providers=(gemini_provider,))
+
+    return AgentManager(model_router=model_router)

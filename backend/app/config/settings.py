@@ -1,5 +1,10 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
 from typing import List
+
+from pydantic_settings import BaseSettings
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
@@ -14,7 +19,14 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-3.6-flash"
+
+    model_config = {
+        "env_file": PROJECT_ROOT / ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
 
 settings = Settings()
