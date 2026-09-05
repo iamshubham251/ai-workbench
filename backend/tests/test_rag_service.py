@@ -170,3 +170,132 @@ def test_rag_service_returns_grounded_fallback_when_evidence_is_weak():
     )
 
 
+
+def test_rag_service_queries_across_all_indexed_documents():
+    connection = sqlite3.connect(":memory:")
+
+    chunk_repository = SqlChunkRepository(connection)
+    embedding_repository = EmbeddingRepository(connection)
+
+    document_a = uuid4()
+    document_b = uuid4()
+
+    chunks_a = (
+        DocumentChunk(
+            document_id=document_a,
+            chunk_index=0,
+            text="Conveyor belt inspection must happen before daily operations.",
+            page_numbers=(1,),
+            section_title="Inspection",
+        ),
+    )
+
+    chunks_b = (
+        DocumentChunk(
+            document_id=document_b,
+            chunk_index=0,
+            text="Emergency shutdown must be performed when belt damage is detected.",
+            page_numbers=(4,),
+            section_title="Emergency Safety",
+        ),
+    )
+
+    chunk_repository.save(document_a, chunks_a)
+    chunk_repository.save(document_b, chunks_b)
+
+    query_service = QueryEmbeddingService()
+
+    embedding_repository.save(
+        document_a,
+        query_service.provider.embed_batch(chunks_a),
+    )
+    embedding_repository.save(
+        document_b,
+        query_service.provider.embed_batch(chunks_b),
+    )
+
+    rag_service = RagService(
+        chunk_repository=chunk_repository,
+        embedding_repository=embedding_repository,
+        query_embedding_service=query_service,
+        answer_generator=DeterministicAnswerGenerator(),
+        min_score=0.0,
+    )
+
+    response = rag_service.query_all(
+        query="What is the emergency shutdown procedure?",
+        top_k=2,
+    )
+
+    assert response.result_count == 2
+    assert response.results[0].document_id == document_b
+    assert response.results[0].chunk_index == 0
+    assert "Emergency shutdown" in response.results[0].text
+    assert response.results[0].page_numbers == (4,)
+    assert response.results[0].section_title == "Emergency Safety"
+    assert response.answer
+
+def test_rag_service_queries_across_all_indexed_documents():
+    connection = sqlite3.connect(":memory:")
+
+    chunk_repository = SqlChunkRepository(connection)
+    embedding_repository = EmbeddingRepository(connection)
+
+    document_a = uuid4()
+    document_b = uuid4()
+
+    chunks_a = (
+        DocumentChunk(
+            document_id=document_a,
+            chunk_index=0,
+            text="Conveyor belt inspection must happen before daily operations.",
+            page_numbers=(1,),
+            section_title="Inspection",
+        ),
+    )
+
+    chunks_b = (
+        DocumentChunk(
+            document_id=document_b,
+            chunk_index=0,
+            text="Emergency shutdown must be performed when belt damage is detected.",
+            page_numbers=(4,),
+            section_title="Emergency Safety",
+        ),
+    )
+
+    chunk_repository.save(document_a, chunks_a)
+    chunk_repository.save(document_b, chunks_b)
+
+    query_service = QueryEmbeddingService()
+
+    embedding_repository.save(
+        document_a,
+        query_service.provider.embed_batch(chunks_a),
+    )
+    embedding_repository.save(
+        document_b,
+        query_service.provider.embed_batch(chunks_b),
+    )
+
+    rag_service = RagService(
+        chunk_repository=chunk_repository,
+        embedding_repository=embedding_repository,
+        query_embedding_service=query_service,
+        answer_generator=DeterministicAnswerGenerator(),
+        min_score=0.0,
+    )
+
+    response = rag_service.query_all(
+        query="What is the emergency shutdown procedure?",
+        top_k=2,
+    )
+
+    assert response.result_count == 2
+    assert response.results[0].document_id == document_b
+    assert response.results[0].chunk_index == 0
+    assert "Emergency shutdown" in response.results[0].text
+    assert response.results[0].page_numbers == (4,)
+    assert response.results[0].section_title == "Emergency Safety"
+    assert response.answer
+

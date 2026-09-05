@@ -104,3 +104,51 @@ class RagService:
             answer=answer,
             results=results,
         )
+
+    def query_all(
+        self,
+        query: str,
+        top_k: int = 5,
+    ) -> RagResponse:
+        """Retrieve evidence across all indexed documents."""
+
+        if not query.strip():
+            raise ValueError("query must not be empty")
+
+        chunks = self.chunk_repository.get_all()
+        embeddings = self.embedding_repository.get_all()
+
+        if not chunks or not embeddings:
+            return RagResponse(
+                query=query,
+                answer="No supporting evidence was found for this query.",
+                results=(),
+            )
+
+        query_vector = self.query_embedding_service.embed_query(query)
+
+        results = self.retriever.retrieve(
+            query_embedding=query_vector,
+            chunks=chunks,
+            embeddings=embeddings,
+            top_k=top_k,
+            min_score=self.min_score,
+        )
+
+        if not results:
+            return RagResponse(
+                query=query,
+                answer="No supporting evidence was found for this query.",
+                results=(),
+            )
+
+        answer = self.answer_generator.generate(
+            query=query,
+            results=results,
+        )
+
+        return RagResponse(
+            query=query,
+            answer=answer,
+            results=results,
+        )
