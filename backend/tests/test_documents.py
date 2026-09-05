@@ -364,3 +364,77 @@ def test_knowledge_query_missing_document_returns_404(client):
     )
 
     assert response.status_code == 404
+
+def test_knowledge_base_query_returns_results_across_documents(client, tmp_path):
+    """Knowledge-base query searches indexed chunks across documents."""
+    import fitz
+
+    pdf_paths = []
+
+    for filename, text in (
+        (
+            "inspection.pdf",
+            "Conveyor belt inspection requires checking alignment and guarding.",
+        ),
+        (
+            "emergency.pdf",
+            "Emergency shutdown must be performed when belt damage is detected.",
+        ),
+    ):
+        pdf_path = tmp_path / filename
+        pdf = fitz.open()
+        page = pdf.new_page()
+        page.insert_text((72, 72), text)
+        pdf.save(pdf_path)
+        pdf.close()
+        pdf_paths.append((filename, pdf_path))
+
+    document_ids = []
+
+    for filename, pdf_path in pdf_paths:
+        with pdf_path.open("rb") as file:
+            upload_response = client.post(
+                "/api/documents/upload",
+                files=[
+                    (
+                        "file",
+                        (
+                            filename,
+                            file,
+                            "application/pdf",
+                        ),
+                    )
+                ],
+            )
+
+        assert upload_response.status_code == 201
+        document_ids.append(upload_response.json()["id"])
+
+    for document_id in document_ids:
+        ingest_response = client.post(
+            f"/api/knowledge/{document_id}/ingest"
+        )
+        assert ingest_response.status_code == 200
+
+    response = client.post(
+        "/api/knowledge/query",
+        json={
+            "query": "What is the emergency shutdown procedure?",
+            "top_k": 5,
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["query"] == "What is the emergency shutdown procedure?"
+    assert body["answer"]
+    assert body["result_count"] >= 1
+    assert len(body["results"]) >= 1
+
+    result = body["results"][0]
+
+    assert result["document_id"] == document_ids[1]
+    assert "Emergency shutdown" in result["text"]
+    assert result["page_numbers"] == [1]

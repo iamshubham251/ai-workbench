@@ -18,6 +18,38 @@ router = APIRouter()
 
 
 @router.post(
+    "/query",
+    response_model=KnowledgeQueryResponse,
+)
+def query_knowledge_base(
+    request: KnowledgeQueryRequest,
+    rag_service: RagService = Depends(get_rag_service),
+) -> KnowledgeQueryResponse:
+    """Query the entire indexed knowledge base."""
+
+    result = rag_service.query_all(
+        query=request.query,
+        top_k=request.top_k,
+    )
+
+    return KnowledgeQueryResponse(
+        query=result.query,
+        answer=result.answer,
+        result_count=result.result_count,
+        results=tuple(
+            KnowledgeQueryResult(
+                document_id=item.document_id,
+                chunk_index=item.chunk_index,
+                text=item.text,
+                score=item.score,
+                page_numbers=item.page_numbers,
+                section_title=item.section_title,
+            )
+            for item in result.results
+        ),
+    )
+
+@router.post(
     "/{document_id}/query",
     response_model=KnowledgeQueryResponse,
 )
@@ -51,3 +83,4 @@ def query_knowledge(
             for item in result.results
         ),
     )
+
