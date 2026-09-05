@@ -2,7 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
-from app.api.routes import agents, documents, health, knowledge, knowledge_query
+from app.api.routes import (
+    agents,
+    documents,
+    health,
+    knowledge,
+    knowledge_query,
+    workflows,
+)
 from app.repositories.document_repository import DocumentRepository
 
 
@@ -46,6 +53,11 @@ def create_app() -> FastAPI:
         agents.router,
         prefix="/api/agents",
         tags=["agents"],
+    )
+    app.include_router(
+        workflows.router,
+        prefix="/api/workflows",
+        tags=["workflows"],
     )
 
     return app

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 25
     DATABASE_PATH: str = "./ai_workbench.db"
     UPLOAD_DIR: str = "../data/uploads"
+    OUTPUT_DIR: str = "../data/outputs"
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://localhost:5174",

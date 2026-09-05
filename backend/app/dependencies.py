@@ -11,12 +11,14 @@ from app.config.settings import settings
 from app.repositories.chunk_sql_repository import SqlChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.embedding_repository import EmbeddingRepository
+from app.services.approval_workflow_service import ApprovalWorkflowService
 from app.services.deterministic_answer_generator import (
     DeterministicAnswerGenerator,
 )
 from app.services.document_chunker import DocumentChunker
 from app.services.document_normalizer import DocumentNormalizer
 from app.services.document_service import DocumentService
+from app.services.gemini_inspection_analyzer import GeminiInspectionAnalyzer
 from app.services.knowledge_ingestion_service import KnowledgeIngestionService
 from app.services.pdf_processing_pipeline import PdfProcessingPipeline
 from app.services.pypdf_processor import PypdfProcessor
@@ -109,3 +111,15 @@ def get_agent_manager():
         )
     finally:
         connection.close()
+
+
+def get_approval_workflow_service() -> ApprovalWorkflowService:
+    """Create the inspection approval workflow service."""
+    gemini_provider = GeminiModelProvider()
+
+    return ApprovalWorkflowService(
+        inspection_analyzer=GeminiInspectionAnalyzer(
+            model_provider=gemini_provider,
+        ),
+    )
+
