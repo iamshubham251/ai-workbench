@@ -194,3 +194,50 @@ def test_documents_are_isolated():
 
     assert repository.get_by_document_id(document_a)[0].vector == (0.1, 0.2)
     assert repository.get_by_document_id(document_b)[0].vector == (0.9, 0.8)
+
+def test_repository_returns_embeddings_across_documents_in_stable_order():
+    document_a = uuid4()
+    document_b = uuid4()
+
+    embeddings_a = (
+        DocumentEmbedding(
+            document_id=document_a,
+            chunk_index=1,
+            vector=(0.2, 0.3),
+        ),
+        DocumentEmbedding(
+            document_id=document_a,
+            chunk_index=0,
+            vector=(0.1, 0.2),
+        ),
+    )
+
+    embeddings_b = (
+        DocumentEmbedding(
+            document_id=document_b,
+            chunk_index=0,
+            vector=(0.9, 0.8),
+        ),
+    )
+
+    connection = sqlite3.connect(":memory:")
+    repository = EmbeddingRepository(connection)
+
+    repository.save(document_a, embeddings_a)
+    repository.save(document_b, embeddings_b)
+
+    results = repository.get_all()
+
+    expected = sorted(
+        (
+            (document_a, 0, (0.1, 0.2)),
+            (document_a, 1, (0.2, 0.3)),
+            (document_b, 0, (0.9, 0.8)),
+        ),
+        key=lambda item: (str(item[0]), item[1]),
+    )
+
+    assert [
+        (embedding.document_id, embedding.chunk_index, embedding.vector)
+        for embedding in results
+    ] == expected

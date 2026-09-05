@@ -95,6 +95,34 @@ class EmbeddingRepository:
             for row in rows
         )
 
+    def get_all(self) -> tuple[DocumentEmbedding, ...]:
+        """Return all stored embeddings in stable document and chunk order."""
+        cursor = self.connection.execute(
+            """
+            SELECT
+                document_id,
+                chunk_index,
+                vector,
+                dimensions
+            FROM document_embeddings
+            ORDER BY document_id ASC, chunk_index ASC
+            """
+        )
+
+        rows = cursor.fetchall()
+
+        return tuple(
+            DocumentEmbedding(
+                document_id=UUID(row[0]),
+                chunk_index=row[1],
+                vector=tuple(
+                    float(value)
+                    for value in row[2].split(",")
+                    if value
+                ),
+            )
+            for row in rows
+        )
     def delete_by_document_id(
         self,
         document_id: UUID,
@@ -124,3 +152,4 @@ class EmbeddingRepository:
         )
 
         return int(cursor.fetchone()[0])
+
