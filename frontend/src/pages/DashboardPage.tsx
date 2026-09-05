@@ -4,6 +4,7 @@ import { UploadDropzone } from '../components/dashboard/UploadDropzone';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { RecentWorkflows } from '../components/dashboard/RecentWorkflows';
 import { ActivityPanel } from '../components/dashboard/ActivityPanel';
+import { ApprovalWorkflowPanel } from '../components/dashboard/ApprovalWorkflowPanel';
 
 export const DashboardPage: React.FC = () => {
   return (
@@ -11,6 +12,7 @@ export const DashboardPage: React.FC = () => {
       <div className="dashboard-main">
         <WelcomeHeader />
         <UploadDropzone />
+        <ApprovalWorkflowPanel />
         <QuickActions />
         <RecentWorkflows />
       </div>
