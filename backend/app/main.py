@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
-from app.api.routes import health, documents
+from app.api.routes import health, documents, knowledge
 from app.repositories.document_repository import DocumentRepository
 
 
@@ -27,7 +27,16 @@ def create_app() -> FastAPI:
         DocumentRepository(db_path=settings.DATABASE_PATH)
 
     app.include_router(health.router, prefix="/api")
-    app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
+    app.include_router(
+        documents.router,
+        prefix="/api/documents",
+        tags=["documents"],
+    )
+    app.include_router(
+        knowledge.router,
+        prefix="/api/knowledge",
+        tags=["knowledge"],
+    )
 
     return app
 
