@@ -8,11 +8,13 @@ from app.repositories.chunk_sql_repository import SqlChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.embedding_repository import EmbeddingRepository
 from app.services.document_chunker import DocumentChunker
-from app.services.document_service import DocumentService
 from app.services.document_normalizer import DocumentNormalizer
+from app.services.document_service import DocumentService
 from app.services.knowledge_ingestion_service import KnowledgeIngestionService
 from app.services.pdf_processing_pipeline import PdfProcessingPipeline
 from app.services.pypdf_processor import PypdfProcessor
+from app.services.query_embedding_service import QueryEmbeddingService
+from app.services.rag_service import RagService
 from app.services.sentence_transformer_embedding_provider import (
     SentenceTransformerEmbeddingProvider,
 )
@@ -55,3 +57,19 @@ def get_knowledge_ingestion_service():
     finally:
         connection.close()
 
+
+def get_rag_service():
+    """Create and clean up the local RAG query service."""
+    connection = sqlite3.connect(settings.DATABASE_PATH)
+
+    try:
+        chunk_repository = SqlChunkRepository(connection)
+        embedding_repository = EmbeddingRepository(connection)
+
+        yield RagService(
+            chunk_repository=chunk_repository,
+            embedding_repository=embedding_repository,
+            query_embedding_service=QueryEmbeddingService(),
+        )
+    finally:
+        connection.close()
