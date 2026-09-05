@@ -35,11 +35,18 @@ def execute_approval_workflow(
         / f"approval_note_{workflow_id}.docx"
     )
 
-    result = workflow_service.execute(
-        workflow_id=workflow_id,
-        inspection_text=request.instruction,
-        output_path=output_path,
-    )
+    if request.document_ids:
+        result = workflow_service.execute_from_document(
+            workflow_id=workflow_id,
+            document_id=request.document_ids[0],
+            output_path=output_path,
+        )
+    else:
+        result = workflow_service.execute(
+            workflow_id=workflow_id,
+            inspection_text=request.instruction,
+            output_path=output_path,
+        )
 
     return ApprovalWorkflowResponse(
         workflow_id=result.workflow_id,

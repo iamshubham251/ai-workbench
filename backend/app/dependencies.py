@@ -126,12 +126,29 @@ def get_agent_manager():
         connection.close()
 
 
-def get_approval_workflow_service() -> ApprovalWorkflowService:
-    """Create the inspection approval workflow service."""
-    gemini_provider = GeminiModelProvider()
+def get_approval_workflow_service():
+    """Create and clean up the inspection approval workflow service."""
+    connection = sqlite3.connect(settings.DATABASE_PATH)
 
-    return ApprovalWorkflowService(
-        inspection_analyzer=GeminiInspectionAnalyzer(
-            model_provider=gemini_provider,
-        ),
-    )
+    try:
+        chunk_repository = SqlChunkRepository(connection)
+        embedding_repository = EmbeddingRepository(connection)
+
+        rag_service = RagService(
+            chunk_repository=chunk_repository,
+            embedding_repository=embedding_repository,
+            query_embedding_service=QueryEmbeddingService(),
+            answer_generator=DeterministicAnswerGenerator(),
+        )
+
+        gemini_provider = GeminiModelProvider()
+
+        yield ApprovalWorkflowService(
+            inspection_analyzer=GeminiInspectionAnalyzer(
+                model_provider=gemini_provider,
+            ),
+            document_content_service=get_document_content_service(),
+            rag_service=rag_service,
+        )
+    finally:
+        connection.close()
