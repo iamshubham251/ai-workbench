@@ -38,14 +38,14 @@ class Retriever:
             raise ValueError("min_score must be between 0.0 and 1.0")
 
         chunk_map = {
-            chunk.chunk_index: chunk
+            (chunk.document_id, chunk.chunk_index): chunk
             for chunk in chunks
         }
 
         results: list[RetrievalResult] = []
 
         for embedding in embeddings:
-            chunk = chunk_map.get(embedding.chunk_index)
+            chunk = chunk_map.get((embedding.document_id, embedding.chunk_index))
 
             if chunk is None:
                 continue
@@ -74,3 +74,4 @@ class Retriever:
         )
 
         return tuple(results[:top_k])
+

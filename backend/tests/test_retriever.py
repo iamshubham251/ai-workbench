@@ -288,3 +288,52 @@ def test_retriever_rejects_invalid_min_score():
             ),
             min_score=1.1,
         )
+
+def test_retriever_matches_chunks_by_document_and_chunk_index():
+    """Chunks must be matched using the composite (document_id, chunk_index) key."""
+    document_a = uuid4()
+    document_b = uuid4()
+
+    chunks = (
+        DocumentChunk(
+            document_id=document_a,
+            chunk_index=0,
+            text="Document A chunk zero",
+        ),
+        DocumentChunk(
+            document_id=document_b,
+            chunk_index=0,
+            text="Document B chunk zero",
+        ),
+    )
+
+    embeddings = (
+        DocumentEmbedding(
+            document_id=document_a,
+            chunk_index=0,
+            vector=(1.0, 0.0),
+        ),
+        DocumentEmbedding(
+            document_id=document_b,
+            chunk_index=0,
+            vector=(0.0, 1.0),
+        ),
+    )
+
+    results = Retriever().retrieve(
+        query_embedding=(1.0, 0.0),
+        chunks=chunks,
+        embeddings=embeddings,
+        top_k=5,
+    )
+
+    assert len(results) == 2
+    assert results[0].document_id == document_a
+    assert results[0].chunk_index == 0
+    assert results[0].text == "Document A chunk zero"
+    assert results[0].score == pytest.approx(1.0)
+
+    assert results[1].document_id == document_b
+    assert results[1].chunk_index == 0
+    assert results[1].text == "Document B chunk zero"
+    assert results[1].score == pytest.approx(0.0)
