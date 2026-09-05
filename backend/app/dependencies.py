@@ -16,6 +16,7 @@ from app.services.deterministic_answer_generator import (
     DeterministicAnswerGenerator,
 )
 from app.services.document_chunker import DocumentChunker
+from app.services.document_content_service import DocumentContentService
 from app.services.document_normalizer import DocumentNormalizer
 from app.services.document_service import DocumentService
 from app.services.gemini_inspection_analyzer import GeminiInspectionAnalyzer
@@ -41,6 +42,18 @@ def get_document_service() -> DocumentService:
         repository=repository,
         storage=storage,
         max_upload_bytes=max_bytes,
+    )
+
+
+def get_document_content_service() -> DocumentContentService:
+    """Create the document processing service."""
+    return DocumentContentService(
+        document_service=get_document_service(),
+        pdf_pipeline=PdfProcessingPipeline(
+            pdf_processor=PypdfProcessor(),
+            ocr_processor=TesseractOcrProcessor(),
+        ),
+        normalizer=DocumentNormalizer(),
     )
 
 
@@ -122,4 +135,3 @@ def get_approval_workflow_service() -> ApprovalWorkflowService:
             model_provider=gemini_provider,
         ),
     )
-
