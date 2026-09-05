@@ -4,6 +4,7 @@ import sqlite3
 from pathlib import Path
 
 from app.ai.gemini_provider import GeminiModelProvider
+from app.agents.agent_context_builder import AgentContextBuilder
 from app.agents.agent_manager import AgentManager
 from app.ai.model_router import ModelRouter
 from app.config.settings import settings
@@ -82,9 +83,29 @@ def get_rag_service():
         connection.close()
 
 
-def get_agent_manager() -> AgentManager:
-    """Create the application agent manager with the configured Gemini provider."""
-    gemini_provider = GeminiModelProvider()
-    model_router = ModelRouter(providers=(gemini_provider,))
+def get_agent_manager():
+    """Create and clean up the grounded application agent manager."""
+    connection = sqlite3.connect(settings.DATABASE_PATH)
 
-    return AgentManager(model_router=model_router)
+    try:
+        chunk_repository = SqlChunkRepository(connection)
+        embedding_repository = EmbeddingRepository(connection)
+
+        rag_service = RagService(
+            chunk_repository=chunk_repository,
+            embedding_repository=embedding_repository,
+            query_embedding_service=QueryEmbeddingService(),
+            answer_generator=DeterministicAnswerGenerator(),
+        )
+
+        context_builder = AgentContextBuilder(rag_service)
+
+        gemini_provider = GeminiModelProvider()
+        model_router = ModelRouter(providers=(gemini_provider,))
+
+        yield AgentManager(
+            model_router=model_router,
+            context_builder=context_builder,
+        )
+    finally:
+        connection.close()
