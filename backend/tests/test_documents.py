@@ -464,3 +464,77 @@ def test_knowledge_base_query_returns_results_across_documents(client, tmp_path)
     assert "Emergency shutdown" in result["text"]
     assert result["page_numbers"] == [1]
 
+
+
+def test_knowledge_base_query_can_filter_by_document_role(client, tmp_path):
+    """Knowledge-base query can restrict retrieval to a document role."""
+    import fitz
+
+    documents = (
+        (
+            "sop.pdf",
+            "The standard operating procedure requires emergency shutdown before maintenance.",
+            "sop",
+        ),
+        (
+            "inspection.pdf",
+            "Inspection found damaged guarding on the conveyor belt.",
+            "inspection_report",
+        ),
+    )
+
+    document_ids = []
+
+    for filename, content, role in documents:
+        pdf_path = tmp_path / filename
+        pdf = fitz.open()
+        page = pdf.new_page()
+        page.insert_text((72, 72), content)
+        pdf.save(pdf_path)
+        pdf.close()
+
+        with pdf_path.open("rb") as file:
+            upload_response = client.post(
+                "/api/documents/upload",
+                files=[
+                    (
+                        "file",
+                        (
+                            filename,
+                            file,
+                            "application/pdf",
+                        ),
+                    )
+                ],
+                data={"role": role},
+            )
+
+        assert upload_response.status_code == 201
+        document_ids.append(upload_response.json()["id"])
+
+    for document_id in document_ids:
+        ingest_response = client.post(
+            f"/api/knowledge/{document_id}/ingest"
+        )
+        assert ingest_response.status_code == 200
+
+    response = client.post(
+        "/api/knowledge/query",
+        json={
+            "query": "What does the procedure require before maintenance?",
+            "top_k": 5,
+            "role": "sop",
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["result_count"] >= 1
+    assert len(body["results"]) >= 1
+    assert all(
+        result["document_id"] == document_ids[0]
+        for result in body["results"]
+    )
+    assert "standard operating procedure" in body["results"][0]["text"].lower()

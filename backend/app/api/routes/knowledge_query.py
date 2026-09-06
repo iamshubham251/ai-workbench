@@ -30,6 +30,7 @@ def query_knowledge_base(
     result = rag_service.query_all(
         query=request.query,
         top_k=request.top_k,
+        role=request.role,
     )
 
     return KnowledgeQueryResponse(

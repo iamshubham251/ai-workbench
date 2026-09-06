@@ -3,9 +3,11 @@ from uuid import uuid4
 
 import pytest
 
+from app.models.document import Document, DocumentRole
 from app.models.document_chunk import DocumentChunk
 from app.models.embedding import DocumentEmbedding
 from app.repositories.chunk_sql_repository import SqlChunkRepository
+from app.repositories.document_repository import DocumentRepository
 from app.repositories.embedding_repository import EmbeddingRepository
 from app.services.deterministic_answer_generator import (
     DeterministicAnswerGenerator,
@@ -169,6 +171,99 @@ def test_rag_service_returns_grounded_fallback_when_evidence_is_weak():
         "No supporting evidence was found for this query."
     )
 
+
+
+def test_rag_service_query_all_can_filter_by_document_role(tmp_path):
+    db_path = str(tmp_path / "rag.db")
+    connection = sqlite3.connect(db_path)
+
+    document_repository = DocumentRepository(db_path)
+    chunk_repository = SqlChunkRepository(connection)
+    embedding_repository = EmbeddingRepository(connection)
+
+    sop_document = Document(
+        id=uuid4(),
+        original_filename="sop.pdf",
+        stored_filename="sop.pdf",
+        content_type="application/pdf",
+        extension=".pdf",
+        size_bytes=100,
+        status="uploaded",
+        storage_path="/uploads/sop.pdf",
+        created_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc),
+        updated_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc),
+        role=DocumentRole.SOP,
+    )
+
+    inspection_document = Document(
+        id=uuid4(),
+        original_filename="inspection.pdf",
+        stored_filename="inspection.pdf",
+        content_type="application/pdf",
+        extension=".pdf",
+        size_bytes=100,
+        status="uploaded",
+        storage_path="/uploads/inspection.pdf",
+        created_at=sop_document.created_at,
+        updated_at=sop_document.updated_at,
+        role=DocumentRole.INSPECTION_REPORT,
+    )
+
+    document_repository.create(sop_document)
+    document_repository.create(inspection_document)
+
+    sop_chunks = (
+        DocumentChunk(
+            document_id=sop_document.id,
+            chunk_index=0,
+            text="Emergency shutdown procedure requires immediate isolation of the conveyor.",
+            page_numbers=(1,),
+            section_title="Emergency Shutdown",
+        ),
+    )
+
+    inspection_chunks = (
+        DocumentChunk(
+            document_id=inspection_document.id,
+            chunk_index=0,
+            text="Emergency shutdown button failed during inspection.",
+            page_numbers=(2,),
+            section_title="Finding",
+        ),
+    )
+
+    chunk_repository.save(sop_document.id, sop_chunks)
+    chunk_repository.save(inspection_document.id, inspection_chunks)
+
+    query_service = QueryEmbeddingService()
+
+    embedding_repository.save(
+        sop_document.id,
+        query_service.provider.embed_batch(sop_chunks),
+    )
+    embedding_repository.save(
+        inspection_document.id,
+        query_service.provider.embed_batch(inspection_chunks),
+    )
+
+    rag_service = RagService(
+        chunk_repository=chunk_repository,
+        embedding_repository=embedding_repository,
+        query_embedding_service=query_service,
+        answer_generator=DeterministicAnswerGenerator(),
+        document_repository=document_repository,
+        min_score=0.0,
+    )
+
+    response = rag_service.query_all(
+        query="What is the emergency shutdown procedure?",
+        top_k=5,
+        role=DocumentRole.SOP,
+    )
+
+    assert response.result_count == 1
+    assert response.results[0].document_id == sop_document.id
+    assert "Emergency shutdown procedure" in response.results[0].text
 
 
 def test_rag_service_queries_across_all_indexed_documents():

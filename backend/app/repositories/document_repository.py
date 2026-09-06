@@ -91,6 +91,15 @@ class DocumentRepository:
             ).fetchone()
         return self._row_to_doc(row) if row else None
 
+    def list_documents_by_role(self, role: DocumentRole) -> List[Document]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM documents WHERE role = ? "
+                "ORDER BY created_at DESC, rowid DESC",
+                (role.value,),
+            ).fetchall()
+        return [self._row_to_doc(row) for row in rows]
+
     def delete(self, document_id: UUID) -> bool:
         with self._connect() as conn:
             cursor = conn.execute(

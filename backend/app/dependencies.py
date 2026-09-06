@@ -87,10 +87,12 @@ def get_rag_service():
     try:
         chunk_repository = SqlChunkRepository(connection)
         embedding_repository = EmbeddingRepository(connection)
+        document_repository = DocumentRepository(settings.DATABASE_PATH)
 
         yield RagService(
             chunk_repository=chunk_repository,
             embedding_repository=embedding_repository,
+            document_repository=document_repository,
             query_embedding_service=QueryEmbeddingService(),
             answer_generator=DeterministicAnswerGenerator(),
         )
@@ -105,10 +107,12 @@ def get_agent_manager():
     try:
         chunk_repository = SqlChunkRepository(connection)
         embedding_repository = EmbeddingRepository(connection)
+        document_repository = DocumentRepository(settings.DATABASE_PATH)
 
         rag_service = RagService(
             chunk_repository=chunk_repository,
             embedding_repository=embedding_repository,
+            document_repository=document_repository,
             query_embedding_service=QueryEmbeddingService(),
             answer_generator=DeterministicAnswerGenerator(),
         )
@@ -133,10 +137,12 @@ def get_approval_workflow_service():
     try:
         chunk_repository = SqlChunkRepository(connection)
         embedding_repository = EmbeddingRepository(connection)
+        document_repository = DocumentRepository(settings.DATABASE_PATH)
 
         rag_service = RagService(
             chunk_repository=chunk_repository,
             embedding_repository=embedding_repository,
+            document_repository=document_repository,
             query_embedding_service=QueryEmbeddingService(),
             answer_generator=DeterministicAnswerGenerator(),
         )
