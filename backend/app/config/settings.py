@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from typing import List
 
 from pydantic_settings import BaseSettings
@@ -17,11 +17,13 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://localhost:5174",
+        "http://localhost:5175",
         "http://127.0.0.1:5173",
     ]
 
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-3.6-flash"
+    TESSERACT_CMD: str = ""
 
     model_config = {
         "env_file": PROJECT_ROOT / ".env",

@@ -31,10 +31,16 @@ class GeminiInspectionAnalyzer:
         prompt = (
             "Analyze the following inspection report and extract only "
             "explicit inspection findings.\n\n"
-            "Return one finding per line using exactly this format:\n"
+            "Your response MUST contain one or more lines using exactly "
+            "this format and nothing else:\n"
             "- finding: <finding> | severity: <high|medium|low> | page: <number>\n\n"
+            "Do not write an introduction, explanation, markdown heading, "
+            "code fence, bullets other than the required finding lines, "
+            "or conclusion.\n"
             "If severity or page is unknown, omit that field.\n"
-            "Do not invent findings, severity, or page numbers.\n\n"
+            "Do not invent findings, severity, or page numbers.\n"
+            "If the report contains no explicit findings, return exactly:\n"
+            "- finding: No explicit inspection finding identified\n\n"
             f"INSPECTION REPORT:\n{inspection_text}\n\n"
         )
 
@@ -47,5 +53,9 @@ class GeminiInspectionAnalyzer:
         response = self._model_provider.generate(
             ModelRequest(prompt=prompt)
         )
+
+        print("\n===== GEMINI INSPECTION OUTPUT =====")
+        print(response.output)
+        print("===== END GEMINI INSPECTION OUTPUT =====\n")
 
         return self._extractor.extract(response.output)

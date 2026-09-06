@@ -1,13 +1,17 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
   CheckCircle2,
   Download,
+  FileCheck2,
   FileText,
   Loader2,
   Play,
   RotateCcw,
+  Search,
   ShieldAlert,
+  Sparkles,
 } from 'lucide-react';
 import {
   getDocuments,
@@ -19,7 +23,66 @@ import {
   type ApprovalWorkflowResponse,
 } from '../../services/workflowService';
 
+type WorkflowStage =
+  | 'idle'
+  | 'extracting'
+  | 'retrieving'
+  | 'analyzing'
+  | 'deciding'
+  | 'generating'
+  | 'complete';
+
+const stages: {
+  key: Exclude<WorkflowStage, 'idle' | 'complete'>;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    key: 'extracting',
+    label: 'Document extraction',
+    description: 'Reading inspection report content',
+    icon: <FileText size={17} />,
+  },
+  {
+    key: 'retrieving',
+    label: 'SOP retrieval',
+    description: 'Searching local knowledge base',
+    icon: <Search size={17} />,
+  },
+  {
+    key: 'analyzing',
+    label: 'AI analysis',
+    description: 'Evaluating inspection findings',
+    icon: <Sparkles size={17} />,
+  },
+  {
+    key: 'deciding',
+    label: 'Decision',
+    description: 'Applying approval rules',
+    icon: <FileCheck2 size={17} />,
+  },
+  {
+    key: 'generating',
+    label: 'Document generation',
+    description: 'Creating approval note',
+    icon: <FileText size={17} />,
+  },
+];
+
+const stageOrder: WorkflowStage[] = [
+  'extracting',
+  'retrieving',
+  'analyzing',
+  'deciding',
+  'generating',
+  'complete',
+];
+
 export const ApprovalWorkflowPanel: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const requestedDocumentId = searchParams.get('document');
+
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState('');
   const [instruction, setInstruction] = useState(
@@ -28,6 +91,7 @@ export const ApprovalWorkflowPanel: React.FC = () => {
   const [result, setResult] = useState<ApprovalWorkflowResponse | null>(null);
   const [loadingDocuments, setLoadingDocuments] = useState(true);
   const [running, setRunning] = useState(false);
+  const [stage, setStage] = useState<WorkflowStage>('idle');
   const [error, setError] = useState('');
 
   const loadDocuments = async () => {
@@ -37,6 +101,19 @@ export const ApprovalWorkflowPanel: React.FC = () => {
     try {
       const records = await getDocuments();
       setDocuments(records);
+
+      if (requestedDocumentId) {
+        const requestedDocument = records.find(
+          (document) =>
+            document.id === requestedDocumentId &&
+            document.extension.toLowerCase() === '.pdf',
+        );
+
+        if (requestedDocument) {
+          setSelectedDocumentId(requestedDocument.id);
+          return;
+        }
+      }
 
       if (!selectedDocumentId && records.length > 0) {
         const firstPdf = records.find(
@@ -73,14 +150,42 @@ export const ApprovalWorkflowPanel: React.FC = () => {
     setError('');
     setResult(null);
 
+    setStage('extracting');
+
+    const retrievalTimer = window.setTimeout(() => {
+      setStage('retrieving');
+    }, 900);
+
+    const analysisTimer = window.setTimeout(() => {
+      setStage('analyzing');
+    }, 1800);
+
+    const decisionTimer = window.setTimeout(() => {
+      setStage('deciding');
+    }, 3000);
+
     try {
       const response = await executeApprovalWorkflow({
         instruction: instruction.trim(),
         document_ids: [selectedDocumentId],
       });
 
+      window.clearTimeout(retrievalTimer);
+      window.clearTimeout(analysisTimer);
+      window.clearTimeout(decisionTimer);
+
+      setStage('generating');
+
+      await new Promise((resolve) => window.setTimeout(resolve, 450));
+
       setResult(response);
+      setStage('complete');
     } catch (err) {
+      window.clearTimeout(retrievalTimer);
+      window.clearTimeout(analysisTimer);
+      window.clearTimeout(decisionTimer);
+      setStage('idle');
+
       setError(
         err instanceof Error ? err.message : 'Approval workflow failed',
       );
@@ -92,6 +197,7 @@ export const ApprovalWorkflowPanel: React.FC = () => {
   const resetWorkflow = () => {
     setResult(null);
     setError('');
+    setStage('idle');
     void loadDocuments();
   };
 
@@ -109,6 +215,8 @@ export const ApprovalWorkflowPanel: React.FC = () => {
   const outputFilename = result?.output_path
     ? result.output_path.split(/[\\/]/).pop()
     : null;
+
+  const currentStageIndex = stageOrder.indexOf(stage);
 
   return (
     <section className="approval-workflow-panel">
@@ -161,6 +269,84 @@ export const ApprovalWorkflowPanel: React.FC = () => {
             disabled={running}
           />
         </label>
+
+        {stage !== 'idle' && (
+          <div className={`workflow-pipeline pipeline-${stage}`}>
+            <div className="pipeline-header">
+              <div>
+                <span className="eyebrow">EXECUTION PIPELINE</span>
+                <strong>
+                  {stage === 'complete'
+                    ? 'Workflow completed'
+                    : 'Workflow in progress'}
+                </strong>
+              </div>
+
+              <span className="pipeline-progress">
+                {stage === 'complete'
+                  ? '5 / 5'
+                  : `${Math.min(currentStageIndex + 1, 5)} / 5`}
+              </span>
+            </div>
+
+            <div className="pipeline-track">
+              {stages.map((item, index) => {
+                const itemIndex = index;
+                const isComplete =
+                  stage === 'complete' ||
+                  currentStageIndex > itemIndex;
+                const isActive =
+                  stage !== 'complete' && stage === item.key;
+
+                return (
+                  <React.Fragment key={item.key}>
+                    <div
+                      className={[
+                        'pipeline-stage',
+                        isComplete ? 'stage-complete' : '',
+                        isActive ? 'stage-active' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <div className="stage-icon">
+                        {isActive ? (
+                          <Loader2 size={17} className="spin" />
+                        ) : isComplete ? (
+                          <CheckCircle2 size={17} />
+                        ) : (
+                          item.icon
+                        )}
+                      </div>
+
+                      <div className="stage-copy">
+                        <strong>{item.label}</strong>
+                        <span>
+                          {isActive
+                            ? 'Processing...'
+                            : isComplete
+                              ? 'Completed'
+                              : item.description}
+                        </span>
+                      </div>
+                    </div>
+
+                    {index < stages.length - 1 && (
+                      <div
+                        className={[
+                          'pipeline-connector',
+                          currentStageIndex > index ? 'connector-complete' : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="workflow-error">

@@ -1,4 +1,4 @@
-"""Tesseract-backed OCR processing."""
+﻿"""Tesseract-backed OCR processing."""
 
 from io import BytesIO
 from pathlib import Path
@@ -9,6 +9,7 @@ import pytesseract
 from PIL import Image
 from pytesseract import Output
 
+from app.config.settings import settings
 from app.models.document import Document
 from app.models.ocr import OcrPage, OcrProcessingResult
 from app.services.ocr_processor import (
@@ -32,28 +33,44 @@ class TesseractOcrProcessor:
         if not language.strip():
             raise ValueError("language must not be empty")
 
-        if tesseract_cmd:
-            resolved_tesseract = Path(tesseract_cmd)
-
-            if not resolved_tesseract.is_file():
-                raise OcrProcessingError(
-                    "Tesseract executable could not be found"
-                )
-
-            resolved_tesseract_path = str(resolved_tesseract)
-        else:
-            resolved_tesseract_path = which("tesseract")
-
-            if not resolved_tesseract_path:
-                raise OcrProcessingError(
-                    "Tesseract executable could not be found"
-                )
+        resolved_tesseract_path = self._resolve_tesseract(tesseract_cmd)
 
         self.dpi = dpi
         self.tesseract_cmd = resolved_tesseract_path
         self.language = language
 
         pytesseract.pytesseract.tesseract_cmd = resolved_tesseract_path
+
+    @staticmethod
+    def _resolve_tesseract(tesseract_cmd: str | None) -> str:
+        """Resolve Tesseract from explicit config, settings, PATH, or Windows default."""
+        configured_path = tesseract_cmd or settings.TESSERACT_CMD
+
+        if configured_path:
+            resolved_path = Path(configured_path)
+
+            if not resolved_path.is_file():
+                raise OcrProcessingError(
+                    "Tesseract executable could not be found"
+                )
+
+            return str(resolved_path)
+
+        path_tesseract = which("tesseract")
+
+        if path_tesseract:
+            return path_tesseract
+
+        windows_default = Path(
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+        )
+
+        if windows_default.is_file():
+            return str(windows_default)
+
+        raise OcrProcessingError(
+            "Tesseract executable could not be found"
+        )
 
     def process(self, document: Document) -> OcrProcessingResult:
         """Run OCR against every page of a stored PDF."""

@@ -1,4 +1,4 @@
-"""Dependency injection for application services."""
+﻿"""Dependency injection for application services."""
 
 import sqlite3
 from pathlib import Path
@@ -51,7 +51,7 @@ def get_document_content_service() -> DocumentContentService:
         document_service=get_document_service(),
         pdf_pipeline=PdfProcessingPipeline(
             pdf_processor=PypdfProcessor(),
-            ocr_processor=TesseractOcrProcessor(),
+            ocr_processor=TesseractOcrProcessor(tesseract_cmd=settings.TESSERACT_CMD or None),
         ),
         normalizer=DocumentNormalizer(),
     )
@@ -68,7 +68,7 @@ def get_knowledge_ingestion_service():
         yield KnowledgeIngestionService(
             pdf_pipeline=PdfProcessingPipeline(
                 pdf_processor=PypdfProcessor(),
-                ocr_processor=TesseractOcrProcessor(),
+                ocr_processor=TesseractOcrProcessor(tesseract_cmd=settings.TESSERACT_CMD or None),
             ),
             normalizer=DocumentNormalizer(),
             chunker=DocumentChunker(),
@@ -152,3 +152,4 @@ def get_approval_workflow_service():
         )
     finally:
         connection.close()
+

@@ -30,7 +30,29 @@ class PdfProcessingPipeline:
             return extracted
 
         if extracted.content_type == PdfContentType.EMPTY:
-            return extracted
+            if not extracted.pages:
+                return extracted
+
+            ocr_result = self.ocr_processor.process(document)
+
+            pages = tuple(
+                PdfPage(
+                    page_number=page.page_number,
+                    text=page.text,
+                )
+                for page in ocr_result.pages
+            )
+
+            return PdfProcessingResult(
+                document_id=document.id,
+                pages=pages,
+                warnings=extracted.warnings + ocr_result.warnings,
+                content_type=(
+                    PdfContentType.SCANNED
+                    if any(page.text.strip() for page in pages)
+                    else PdfContentType.EMPTY
+                ),
+            )
 
         ocr_result = self.ocr_processor.process(document)
 
