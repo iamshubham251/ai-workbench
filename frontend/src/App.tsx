@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { DocumentsPage } from './pages/DocumentsPage';
+import { KnowledgeBasePage } from './pages/KnowledgeBasePage';
 import { ApprovalWorkflowPanel } from './components/dashboard/ApprovalWorkflowPanel';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import './App.css';
@@ -23,15 +24,7 @@ function App() {
             }
           />
 
-          <Route
-            path="knowledge"
-            element={
-              <PlaceholderPage
-                title="Your local knowledge base will appear here."
-                description="Connect documents and SOPs to enable grounded AI workflows."
-              />
-            }
-          />
+          <Route path="knowledge" element={<KnowledgeBasePage />} />
 
           <Route
             path="sops"

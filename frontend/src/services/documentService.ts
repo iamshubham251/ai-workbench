@@ -55,3 +55,19 @@ export async function deleteDocument(id: string): Promise<void> {
     throw new Error((err as UploadError).detail ?? 'Delete failed');
   }
 }
+
+export interface KnowledgeIngestionResponse {
+  document_id: string;
+  chunk_count: number;
+  embedding_count: number;
+}
+
+export async function ingestDocument(
+  id: string,
+): Promise<KnowledgeIngestionResponse> {
+  const res = await fetch(`${API_BASE}/knowledge/${id}/ingest`, {
+    method: 'POST',
+  });
+  return handleResponse<KnowledgeIngestionResponse>(res);
+}
+
