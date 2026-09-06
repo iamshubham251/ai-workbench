@@ -6,12 +6,12 @@ from uuid import UUID
 
 from fastapi import HTTPException, UploadFile
 
-from app.models.document import Document
+from app.models.document import Document, DocumentRole
 from app.repositories.document_repository import DocumentRepository
 from app.storage.local_storage import LocalStorage
 
 # ---------------------------------------------------------------------------
-# Allowed types registry — extend here, nowhere else
+# Allowed types registry - extend here, nowhere else
 # ---------------------------------------------------------------------------
 
 ALLOWED_TYPES: dict[str, str] = {
@@ -44,7 +44,11 @@ class DocumentService:
     # Upload
     # ------------------------------------------------------------------
 
-    async def upload_document(self, file: UploadFile) -> Document:
+    async def upload_document(
+        self,
+        file: UploadFile,
+        role: DocumentRole = DocumentRole.OTHER,
+    ) -> Document:
         self._validate(file)
 
         content_type = file.content_type or ""
@@ -78,12 +82,16 @@ class DocumentService:
             storage_path=storage_path,
             created_at=now,
             updated_at=now,
+            role=role,
         )
         try:
             self._repo.create(doc)
         except Exception:
             self._storage.delete_document_dir(document_id)
-            raise HTTPException(status_code=500, detail="Metadata persistence failed")
+            raise HTTPException(
+                status_code=500,
+                detail="Metadata persistence failed",
+            )
 
         return doc
 

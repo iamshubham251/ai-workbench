@@ -4,6 +4,8 @@ const BACKEND_BASE_URL = (
 
 const API_BASE = `${BACKEND_BASE_URL}/api`;
 
+export type DocumentRole = 'inspection_report' | 'sop' | 'other';
+
 export interface DocumentRecord {
   id: string;
   original_filename: string;
@@ -11,6 +13,7 @@ export interface DocumentRecord {
   extension: string;
   size_bytes: number;
   status: string;
+  role: DocumentRole;
   created_at: string;
   updated_at: string;
 }
@@ -27,9 +30,13 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function uploadDocument(file: File): Promise<DocumentRecord> {
+export async function uploadDocument(
+  file: File,
+  role: DocumentRole = 'other',
+): Promise<DocumentRecord> {
   const form = new FormData();
   form.append('file', file);
+  form.append('role', role);
 
   const res = await fetch(`${API_BASE}/documents/upload`, {
     method: 'POST',
@@ -71,3 +78,9 @@ export async function ingestDocument(
   return handleResponse<KnowledgeIngestionResponse>(res);
 }
 
+export async function getIngestionStatus(
+  id: string,
+): Promise<KnowledgeIngestionResponse> {
+  const res = await fetch(`${API_BASE}/knowledge/${id}/status`);
+  return handleResponse<KnowledgeIngestionResponse>(res);
+}

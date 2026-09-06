@@ -73,3 +73,19 @@ class KnowledgeIngestionService:
             chunk_count=len(chunks),
             embedding_count=len(embeddings),
         )
+
+    def get_status(self, document_id: UUID) -> KnowledgeIngestionResult:
+        """Return persisted indexing status for a document."""
+
+        chunk_count = self.chunk_repository.count_by_document_id(
+            document_id
+        )
+        embedding_count = self.embedding_repository.count_by_document_id(
+            document_id
+        )
+
+        return KnowledgeIngestionResult(
+            document_id=document_id,
+            chunk_count=chunk_count,
+            embedding_count=embedding_count,
+        )

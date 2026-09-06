@@ -35,3 +35,25 @@ def ingest_document(
         chunk_count=result.chunk_count,
         embedding_count=result.embedding_count,
     )
+
+
+@router.get(
+    "/{document_id}/status",
+    response_model=KnowledgeIngestionResponse,
+)
+def get_ingestion_status(
+    document_id: UUID,
+    document_service: DocumentService = Depends(get_document_service),
+    ingestion_service: KnowledgeIngestionService = Depends(
+        get_knowledge_ingestion_service
+    ),
+) -> KnowledgeIngestionResponse:
+    document_service.get_document(document_id)
+
+    result = ingestion_service.get_status(document_id)
+
+    return KnowledgeIngestionResponse(
+        document_id=result.document_id,
+        chunk_count=result.chunk_count,
+        embedding_count=result.embedding_count,
+    )

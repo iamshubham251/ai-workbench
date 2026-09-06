@@ -1924,3 +1924,37 @@ textarea:focus-visible {
     margin-left: 58px;
   }
 }
+
+.knowledge-role-select {
+  min-height: 40px;
+  padding: 0 32px 0 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.knowledge-role-select:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.knowledge-role-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.knowledge-card-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 760px) {
+  .knowledge-role-select {
+    flex: 1;
+  }
+}

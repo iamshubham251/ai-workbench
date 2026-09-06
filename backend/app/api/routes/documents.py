@@ -1,5 +1,5 @@
 """
-Document routes — THIN by design.
+Document routes - THIN by design.
 
 Each handler:
   1. Receives the HTTP request
@@ -12,11 +12,12 @@ No SQL, no file I/O, no business logic here.
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 
+from app.dependencies import get_document_service
+from app.models.document import DocumentRole
 from app.schemas.document import DocumentResponse
 from app.services.document_service import DocumentService
-from app.dependencies import get_document_service
 
 router = APIRouter()
 
@@ -24,9 +25,10 @@ router = APIRouter()
 @router.post("/upload", response_model=DocumentResponse, status_code=201)
 async def upload_document(
     file: UploadFile = File(...),
+    role: DocumentRole = Form(DocumentRole.OTHER),
     service: DocumentService = Depends(get_document_service),
 ) -> DocumentResponse:
-    doc = await service.upload_document(file)
+    doc = await service.upload_document(file, role=role)
     return DocumentResponse.model_validate(doc.__dict__)
 
 

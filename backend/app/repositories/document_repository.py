@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from app.models.document import Document
+from app.models.document import Document, DocumentRole
 
 
 class DocumentRepository:
@@ -13,16 +13,17 @@ class DocumentRepository:
 
     DDL = """
         CREATE TABLE IF NOT EXISTS documents (
-            id               TEXT PRIMARY KEY,
+            id                TEXT PRIMARY KEY,
             original_filename TEXT NOT NULL,
-            stored_filename  TEXT NOT NULL,
-            content_type     TEXT NOT NULL,
-            extension        TEXT NOT NULL,
-            size_bytes       INTEGER NOT NULL,
-            status           TEXT NOT NULL,
-            storage_path     TEXT NOT NULL,
-            created_at       TEXT NOT NULL,
-            updated_at       TEXT NOT NULL
+            stored_filename   TEXT NOT NULL,
+            content_type      TEXT NOT NULL,
+            extension         TEXT NOT NULL,
+            size_bytes        INTEGER NOT NULL,
+            status            TEXT NOT NULL,
+            storage_path      TEXT NOT NULL,
+            created_at        TEXT NOT NULL,
+            updated_at        TEXT NOT NULL,
+            role              TEXT NOT NULL DEFAULT 'other'
         )
     """
 
@@ -37,6 +38,14 @@ class DocumentRepository:
     def _init_schema(self) -> None:
         with self._connect() as conn:
             conn.execute(self.DDL)
+            columns = {
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(documents)").fetchall()
+            }
+            if "role" not in columns:
+                conn.execute(
+                    "ALTER TABLE documents ADD COLUMN role TEXT NOT NULL DEFAULT 'other'"
+                )
 
     # ------------------------------------------------------------------
     # Public operations
@@ -49,8 +58,8 @@ class DocumentRepository:
                 INSERT INTO documents (
                     id, original_filename, stored_filename, content_type,
                     extension, size_bytes, status, storage_path,
-                    created_at, updated_at
-                ) VALUES (?,?,?,?,?,?,?,?,?,?)
+                    created_at, updated_at, role
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 (
                     str(doc.id),
@@ -63,6 +72,7 @@ class DocumentRepository:
                     doc.storage_path,
                     doc.created_at.isoformat(),
                     doc.updated_at.isoformat(),
+                    doc.role.value,
                 ),
             )
         return doc
@@ -99,6 +109,13 @@ class DocumentRepository:
 
     @staticmethod
     def _row_to_doc(row: sqlite3.Row) -> Document:
+        role = row["role"] if "role" in row.keys() else DocumentRole.OTHER.value
+
+        try:
+            document_role = DocumentRole(role)
+        except ValueError:
+            document_role = DocumentRole.OTHER
+
         return Document(
             id=UUID(row["id"]),
             original_filename=row["original_filename"],
@@ -110,4 +127,5 @@ class DocumentRepository:
             storage_path=row["storage_path"],
             created_at=datetime.fromisoformat(row["created_at"]),
             updated_at=datetime.fromisoformat(row["updated_at"]),
+            role=document_role,
         )
