@@ -2,6 +2,7 @@
 
 from app.ai.model_provider import ModelProvider
 from app.models.model import ModelRequest
+from app.models.model import ModelRequest
 from app.services.inspection_finding_extractor import (
     InspectionFindingExtractor,
 )
@@ -39,8 +40,8 @@ class GeminiInspectionAnalyzer:
             "or conclusion.\n"
             "If severity or page is unknown, omit that field.\n"
             "Do not invent findings, severity, or page numbers.\n"
-            "If the report contains no explicit findings, return exactly:\n"
-            "- finding: No explicit inspection finding identified\n\n"
+            "If the report contains no explicit findings, return an empty response.\n"
+            "Do not create a placeholder finding.\n\n"
             f"INSPECTION REPORT:\n{inspection_text}\n\n"
         )
 
@@ -50,12 +51,18 @@ class GeminiInspectionAnalyzer:
                 f"{evidence}\n"
             )
 
-        response = self._model_provider.generate(
-            ModelRequest(prompt=prompt)
-        )
+        try:
+            response = self._model_provider.generate(
+                ModelRequest(
+                    prompt=prompt,
+                )
+            )
+        except ValueError as exc:
+            if "output must not be empty" in str(exc):
+                return ()
+            raise
 
-        print("\n===== GEMINI INSPECTION OUTPUT =====")
-        print(response.output)
-        print("===== END GEMINI INSPECTION OUTPUT =====\n")
+        if not response.output.strip():
+            return ()
 
         return self._extractor.extract(response.output)

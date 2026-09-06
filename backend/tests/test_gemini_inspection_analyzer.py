@@ -93,3 +93,14 @@ def test_analyzer_uses_model_output_for_extraction():
         "medium",
         "low",
     ]
+
+def test_analyzer_returns_no_findings_when_model_finds_none():
+    provider = FakeModelProvider("")
+
+    findings = GeminiInspectionAnalyzer(provider).analyze(
+        "This is a resume describing software engineering experience."
+    )
+
+    assert findings == ()
+    assert "return an empty response" in provider.last_prompt
+    assert "Do not create a placeholder finding." in provider.last_prompt
