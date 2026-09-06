@@ -285,16 +285,16 @@ export const KnowledgeBasePage: React.FC = () => {
                   </div>
 
                   <div className="knowledge-card-meta">
-                    {document.role.replace('_', ' ')} Ãƒâ€šÃ‚Â·{' '}
-                    {document.extension.toUpperCase().replace('.', '')} Ãƒâ€šÃ‚Â·{' '}
+                    {document.role.replace('_', ' ')} |{' '}
+                    {document.extension.toUpperCase().replace('.', '')} |{' '}
                     {formatBytes(document.size_bytes)}
                   </div>
 
                   {state?.status === 'success' && (
                     <div className="knowledge-card-status success">
-                      <CheckCircle2 size={13} /> {state.message} Ãƒâ€šÃ‚Â·{' '}
-                      {state.chunkCount} chunks Ãƒâ€šÃ‚Â· {state.embeddingCount}{' '}
-                      embeddings
+                      <CheckCircle2 size={13} /> {state.message} |{' '}
+                      {state.chunkCount} chunks |{' '}
+                      {state.embeddingCount} embeddings
                     </div>
                   )}
 

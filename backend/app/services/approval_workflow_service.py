@@ -3,6 +3,7 @@
 from pathlib import Path
 from uuid import UUID
 
+from app.models.document import DocumentRole
 from app.models.approval_workflow import ApprovalWorkflowResult
 from app.services.approval_decision_service import ApprovalDecisionService
 from app.services.approval_note_generator import ApprovalNoteGenerator
@@ -79,6 +80,7 @@ class ApprovalWorkflowService:
             rag_response = self._rag_service.query_all(
                 content.full_text,
                 top_k=5,
+                role=DocumentRole.SOP,
             )
             evidence = tuple(
                 result.text
