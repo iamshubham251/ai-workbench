@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { DocumentsPage } from './pages/DocumentsPage';
+import { ApprovalWorkflowPanel } from './components/dashboard/ApprovalWorkflowPanel';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import './App.css';
 
@@ -12,10 +13,45 @@ function App() {
         <Route path="/" element={<AppShell />}>
           <Route index element={<DashboardPage />} />
           <Route path="documents" element={<DocumentsPage />} />
-          <Route path="workflows" element={<PlaceholderPage title="Workflows" description="Design and monitor AI agent workflows." />} />
-          <Route path="knowledge" element={<PlaceholderPage title="Your local knowledge base will appear here." description="Connect documents and SOPs to enable grounded AI workflows." />} />
-          <Route path="sops" element={<PlaceholderPage title="SOP Library" description="Manage your Standard Operating Procedures." />} />
-          <Route path="history" element={<PlaceholderPage title="History" description="Review past workflow executions and agent activities." />} />
+
+          <Route
+            path="workflows"
+            element={
+              <div>
+                <ApprovalWorkflowPanel />
+              </div>
+            }
+          />
+
+          <Route
+            path="knowledge"
+            element={
+              <PlaceholderPage
+                title="Your local knowledge base will appear here."
+                description="Connect documents and SOPs to enable grounded AI workflows."
+              />
+            }
+          />
+
+          <Route
+            path="sops"
+            element={
+              <PlaceholderPage
+                title="SOP Library"
+                description="Manage your Standard Operating Procedures."
+              />
+            }
+          />
+
+          <Route
+            path="history"
+            element={
+              <PlaceholderPage
+                title="History"
+                description="Review past workflow executions and agent activities."
+              />
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { WelcomeHeader } from '../components/dashboard/WelcomeHeader';
+import { DashboardStats } from '../components/dashboard/DashboardStats';
 import { UploadDropzone } from '../components/dashboard/UploadDropzone';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { RecentWorkflows } from '../components/dashboard/RecentWorkflows';
@@ -11,11 +12,13 @@ export const DashboardPage: React.FC = () => {
     <div className="dashboard-layout">
       <div className="dashboard-main">
         <WelcomeHeader />
+        <DashboardStats />
         <UploadDropzone />
         <ApprovalWorkflowPanel />
         <QuickActions />
         <RecentWorkflows />
       </div>
+
       <div>
         <ActivityPanel />
       </div>
