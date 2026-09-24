@@ -43,9 +43,7 @@ class RagService:
         min_score: float = DEFAULT_MIN_SCORE,
     ) -> None:
         if not 0.0 <= min_score <= 1.0:
-            raise ValueError(
-                "min_score must be between 0.0 and 1.0"
-            )
+            raise ValueError("min_score must be between 0.0 and 1.0")
 
         self.chunk_repository = chunk_repository
         self.embedding_repository = embedding_repository
@@ -66,8 +64,8 @@ class RagService:
         if not query.strip():
             raise ValueError("query must not be empty")
 
-        chunks: tuple[DocumentChunk, ...] = (
-            self.chunk_repository.get_by_document_id(document_id)
+        chunks: tuple[DocumentChunk, ...] = self.chunk_repository.get_by_document_id(
+            document_id
         )
 
         embeddings: tuple[DocumentEmbedding, ...] = (
@@ -129,9 +127,7 @@ class RagService:
                 for document in self.document_repository.list_documents_by_role(role)
             }
             chunks = tuple(
-                chunk
-                for chunk in chunks
-                if chunk.document_id in allowed_document_ids
+                chunk for chunk in chunks if chunk.document_id in allowed_document_ids
             )
             embeddings = tuple(
                 embedding

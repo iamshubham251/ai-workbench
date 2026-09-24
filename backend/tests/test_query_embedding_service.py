@@ -18,9 +18,7 @@ def test_query_embedding_is_generated(service):
 
 
 def test_query_embedding_is_normalized(service):
-    vector = service.embed_query(
-        "What are the safety requirements?"
-    )
+    vector = service.embed_query("What are the safety requirements?")
 
     magnitude = sum(value * value for value in vector) ** 0.5
 

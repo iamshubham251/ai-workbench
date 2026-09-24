@@ -24,15 +24,11 @@ class FakeRagService:
 
     def query(self, document_id, query, top_k):
         self.document_queries.append((document_id, query, top_k))
-        return SimpleNamespace(
-            results=(make_result(document_id),)
-        )
+        return SimpleNamespace(results=(make_result(document_id),))
 
     def query_all(self, query, top_k):
         self.global_queries.append((query, top_k))
-        return SimpleNamespace(
-            results=(make_result(uuid4()),)
-        )
+        return SimpleNamespace(results=(make_result(uuid4()),))
 
 
 def test_builds_context_for_specific_documents():
@@ -51,9 +47,7 @@ def test_builds_context_for_specific_documents():
     assert context.has_evidence
     assert context.items[0].document_id == document_id
     assert context.items[0].text == "Evidence 0"
-    assert rag.document_queries == [
-        (document_id, "Find inspection failures.", 3)
-    ]
+    assert rag.document_queries == [(document_id, "Find inspection failures.", 3)]
     assert rag.global_queries == []
 
 
@@ -68,9 +62,7 @@ def test_builds_context_from_global_knowledge_base():
 
     assert context.item_count == 1
     assert context.has_evidence
-    assert rag.global_queries == [
-        ("Find relevant safety requirements.", 4)
-    ]
+    assert rag.global_queries == [("Find relevant safety requirements.", 4)]
     assert rag.document_queries == []
 
 

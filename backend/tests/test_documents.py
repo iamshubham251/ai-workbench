@@ -4,20 +4,17 @@ Tests: health, upload (PDF/DOCX), validation, listing, retrieval,
        404, path traversal, oversized file, empty file.
 """
 
-import pytest
 from tests.conftest import (
-    make_file,
-    PDF_BYTES,
     DOCX_BYTES,
     DOCX_MIME,
-    XLSX_MIME,
-    PPTX_MIME,
+    PDF_BYTES,
+    make_file,
 )
-
 
 # ==========================================================================
 # 1. Health endpoint
 # ==========================================================================
+
 
 def test_health(client):
     r = client.get("/api/health")
@@ -28,6 +25,7 @@ def test_health(client):
 # ==========================================================================
 # 2. Successful PDF upload
 # ==========================================================================
+
 
 def test_upload_pdf_success(client):
     r = client.post(
@@ -46,6 +44,7 @@ def test_upload_pdf_success(client):
 # 3. Successful DOCX upload
 # ==========================================================================
 
+
 def test_upload_docx_success(client):
     r = client.post(
         "/api/documents/upload",
@@ -61,6 +60,7 @@ def test_upload_docx_success(client):
 # 4. Unsupported extension
 # ==========================================================================
 
+
 def test_upload_unsupported_extension(client):
     r = client.post(
         "/api/documents/upload",
@@ -72,6 +72,7 @@ def test_upload_unsupported_extension(client):
 # ==========================================================================
 # 5. Unsupported media type (right extension, wrong MIME)
 # ==========================================================================
+
 
 def test_upload_mismatched_mime(client):
     r = client.post(
@@ -85,6 +86,7 @@ def test_upload_mismatched_mime(client):
 # 6. Empty file
 # ==========================================================================
 
+
 def test_upload_empty_file(client):
     r = client.post(
         "/api/documents/upload",
@@ -96,6 +98,7 @@ def test_upload_empty_file(client):
 # ==========================================================================
 # 7. Oversized file (limit is 1 MB in tests)
 # ==========================================================================
+
 
 def test_upload_oversized_file(client):
     big = b"A" * (2 * 1024 * 1024)  # 2 MB > 1 MB test limit
@@ -109,6 +112,7 @@ def test_upload_oversized_file(client):
 # ==========================================================================
 # 8. Document listing
 # ==========================================================================
+
 
 def test_list_documents(client):
     # Upload two documents
@@ -129,6 +133,7 @@ def test_list_documents(client):
 # 9. Document retrieval by ID
 # ==========================================================================
 
+
 def test_get_document_by_id(client):
     upload = client.post(
         "/api/documents/upload",
@@ -145,6 +150,7 @@ def test_get_document_by_id(client):
 # 10. Non-existent document → 404
 # ==========================================================================
 
+
 def test_get_nonexistent_document(client):
     r = client.get("/api/documents/00000000-0000-0000-0000-000000000000")
     assert r.status_code == 404
@@ -153,6 +159,7 @@ def test_get_nonexistent_document(client):
 # ==========================================================================
 # 11. Path traversal protection
 # ==========================================================================
+
 
 def test_path_traversal_in_filename(client, tmp_env):
     """
@@ -184,6 +191,7 @@ def test_path_traversal_in_filename(client, tmp_env):
 # 12. Extension / MIME cross-check (PDF ext + DOCX MIME)
 # ==========================================================================
 
+
 def test_extension_content_type_mismatch(client):
     r = client.post(
         "/api/documents/upload",
@@ -196,6 +204,7 @@ def test_extension_content_type_mismatch(client):
 # 13. File exists on disk after upload
 # ==========================================================================
 
+
 def test_file_exists_on_disk(client, tmp_env):
     r = client.post(
         "/api/documents/upload",
@@ -205,7 +214,6 @@ def test_file_exists_on_disk(client, tmp_env):
     doc_id = r.json()["id"]
 
     # Verify file is actually on disk
-    import os
     upload_root = tmp_env["uploads"]
     doc_dir = upload_root / doc_id
     assert doc_dir.exists(), "Document directory was not created"
@@ -216,6 +224,7 @@ def test_file_exists_on_disk(client, tmp_env):
 # ===========================================================================
 # 14. Metadata failure rolls back the stored file
 # ===========================================================================
+
 
 def test_metadata_failure_cleans_up_stored_file(client, tmp_env, monkeypatch):
     from app.repositories.document_repository import DocumentRepository
@@ -237,6 +246,7 @@ def test_metadata_failure_cleans_up_stored_file(client, tmp_env, monkeypatch):
 # 15. DELETE document
 # ==========================================================================
 
+
 def test_delete_document(client):
     r = client.post(
         "/api/documents/upload",
@@ -250,9 +260,11 @@ def test_delete_document(client):
     get_r = client.get(f"/api/documents/{doc_id}")
     assert get_r.status_code == 404
 
+
 # ==========================================================================
 # RAG Query API
 # ==========================================================================
+
 
 def test_knowledge_query_returns_semantic_results(client, tmp_path):
     """Upload, ingest, and semantically query a real PDF through the API."""
@@ -288,9 +300,7 @@ def test_knowledge_query_returns_semantic_results(client, tmp_path):
     assert upload_response.status_code == 201
     document_id = upload_response.json()["id"]
 
-    ingest_response = client.post(
-        f"/api/knowledge/{document_id}/ingest"
-    )
+    ingest_response = client.post(f"/api/knowledge/{document_id}/ingest")
 
     assert ingest_response.status_code == 200
     ingest_body = ingest_response.json()
@@ -323,6 +333,7 @@ def test_knowledge_query_returns_semantic_results(client, tmp_path):
     assert result["score"] > 0
     assert result["page_numbers"] == [1]
 
+
 def test_knowledge_query_rejects_invalid_top_k(client):
     """The query API must reject top_k values outside its public contract."""
     from uuid import uuid4
@@ -336,6 +347,7 @@ def test_knowledge_query_rejects_invalid_top_k(client):
     )
 
     assert response.status_code == 422
+
 
 def test_knowledge_query_rejects_empty_query(client):
     """The query API must reject an empty search query."""
@@ -351,6 +363,7 @@ def test_knowledge_query_rejects_empty_query(client):
 
     assert response.status_code == 422
 
+
 def test_knowledge_query_missing_document_returns_404(client):
     """Querying a document that does not exist must return 404."""
     from uuid import uuid4
@@ -364,6 +377,7 @@ def test_knowledge_query_missing_document_returns_404(client):
     )
 
     assert response.status_code == 404
+
 
 def test_knowledge_base_query_rejects_invalid_top_k(client):
     """Global knowledge-base query rejects invalid top_k values."""
@@ -389,6 +403,7 @@ def test_knowledge_base_query_rejects_empty_query(client):
     )
 
     assert response.status_code == 422
+
 
 def test_knowledge_base_query_returns_results_across_documents(client, tmp_path):
     """Knowledge-base query searches indexed chunks across documents."""
@@ -436,9 +451,7 @@ def test_knowledge_base_query_returns_results_across_documents(client, tmp_path)
         document_ids.append(upload_response.json()["id"])
 
     for document_id in document_ids:
-        ingest_response = client.post(
-            f"/api/knowledge/{document_id}/ingest"
-        )
+        ingest_response = client.post(f"/api/knowledge/{document_id}/ingest")
         assert ingest_response.status_code == 200
 
     response = client.post(
@@ -463,7 +476,6 @@ def test_knowledge_base_query_returns_results_across_documents(client, tmp_path)
     assert result["document_id"] == document_ids[1]
     assert "Emergency shutdown" in result["text"]
     assert result["page_numbers"] == [1]
-
 
 
 def test_knowledge_base_query_can_filter_by_document_role(client, tmp_path):
@@ -513,9 +525,7 @@ def test_knowledge_base_query_can_filter_by_document_role(client, tmp_path):
         document_ids.append(upload_response.json()["id"])
 
     for document_id in document_ids:
-        ingest_response = client.post(
-            f"/api/knowledge/{document_id}/ingest"
-        )
+        ingest_response = client.post(f"/api/knowledge/{document_id}/ingest")
         assert ingest_response.status_code == 200
 
     response = client.post(
@@ -533,8 +543,5 @@ def test_knowledge_base_query_can_filter_by_document_role(client, tmp_path):
 
     assert body["result_count"] >= 1
     assert len(body["results"]) >= 1
-    assert all(
-        result["document_id"] == document_ids[0]
-        for result in body["results"]
-    )
+    assert all(result["document_id"] == document_ids[0] for result in body["results"])
     assert "standard operating procedure" in body["results"][0]["text"].lower()

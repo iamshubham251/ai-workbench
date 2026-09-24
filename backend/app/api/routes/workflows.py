@@ -1,17 +1,16 @@
-﻿from pathlib import Path
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
-from app.dependencies import get_approval_workflow_service
 from app.config.settings import settings
+from app.dependencies import get_approval_workflow_service
 from app.schemas.approval_workflow import (
     ApprovalWorkflowRequest,
     ApprovalWorkflowResponse,
 )
 from app.services.approval_workflow_service import ApprovalWorkflowService
-
 
 router = APIRouter()
 
@@ -19,9 +18,7 @@ router = APIRouter()
 @router.post("/approval", response_model=ApprovalWorkflowResponse)
 def execute_approval_workflow(
     request: ApprovalWorkflowRequest,
-    workflow_service: ApprovalWorkflowService = Depends(
-        get_approval_workflow_service
-    ),
+    workflow_service: ApprovalWorkflowService = Depends(get_approval_workflow_service),
 ):
     workflow_id = uuid4()
     output_path = Path(settings.OUTPUT_DIR) / f"approval_note_{workflow_id}.docx"
@@ -74,9 +71,7 @@ def download_approval_note(filename: str):
     return FileResponse(
         path=requested_path,
         media_type=(
-            "application/vnd.openxmlformats-officedocument."
-            "wordprocessingml.document"
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         ),
         filename=requested_path.name,
     )
-

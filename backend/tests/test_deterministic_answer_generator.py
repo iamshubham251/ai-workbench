@@ -48,7 +48,7 @@ def test_generator_returns_all_retrieved_evidence():
         results,
     )
 
-    assert 'What does the inspection check?' in answer
+    assert "What does the inspection check?" in answer
     assert "Check conveyor belt alignment." in answer
     assert "Verify emergency stops." in answer
     assert "chunk 0" in answer
@@ -68,9 +68,7 @@ def test_generator_preserves_retrieval_order():
 
     answer = generator.generate("test query", results)
 
-    assert answer.index("Third evidence.") < answer.index(
-        "First retrieved evidence."
-    )
+    assert answer.index("Third evidence.") < answer.index("First retrieved evidence.")
     assert answer.index("First retrieved evidence.") < answer.index(
         "Second retrieved evidence."
     )

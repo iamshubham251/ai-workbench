@@ -133,9 +133,7 @@ def test_empty_pdf_skips_ocr() -> None:
     )
 
     pdf_processor = FakePdfProcessor(extracted)
-    ocr_processor = FakeOcrProcessor(
-        create_ocr_result(document, ())
-    )
+    ocr_processor = FakeOcrProcessor(create_ocr_result(document, ()))
 
     pipeline = PdfProcessingPipeline(
         pdf_processor,

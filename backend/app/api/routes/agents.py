@@ -9,7 +9,6 @@ from app.dependencies import get_agent_manager
 from app.models.agent import AgentTask
 from app.schemas.agent import AgentExecuteRequest, AgentExecuteResponse
 
-
 router = APIRouter()
 
 

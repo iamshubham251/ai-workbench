@@ -29,9 +29,7 @@ def test_deterministic_provider_supports_document_and_code():
 def test_deterministic_provider_generates_response():
     provider = DeterministicModelProvider()
 
-    response = provider.generate(
-        ModelRequest(prompt="Review the inspection report.")
-    )
+    response = provider.generate(ModelRequest(prompt="Review the inspection report."))
 
     assert response.output == "Model response: Review the inspection report."
     assert response.model_name == "deterministic-model"

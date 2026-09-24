@@ -112,9 +112,7 @@ def test_model_router_rejects_duplicate_capability():
         ModelRoutingError,
         match="Multiple model providers registered for capability 'document'",
     ):
-        ModelRouter(
-            providers=(FakeDocumentModel(), FakeDocumentModel())
-        )
+        ModelRouter(providers=(FakeDocumentModel(), FakeDocumentModel()))
 
 
 def test_model_router_accepts_empty_provider_registry():

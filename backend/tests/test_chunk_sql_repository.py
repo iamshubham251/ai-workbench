@@ -255,6 +255,7 @@ def test_repository_delete_unknown_document_is_safe() -> None:
 
     connection.close()
 
+
 def test_repository_returns_chunks_across_documents_in_stable_order() -> None:
     document_a = uuid4()
     document_b = uuid4()
@@ -297,9 +298,7 @@ def test_repository_returns_chunks_across_documents_in_stable_order() -> None:
     )
 
     assert [
-        (chunk.document_id, chunk.chunk_index, chunk.text)
-        for chunk in results
+        (chunk.document_id, chunk.chunk_index, chunk.text) for chunk in results
     ] == expected_documents
 
     connection.close()
-

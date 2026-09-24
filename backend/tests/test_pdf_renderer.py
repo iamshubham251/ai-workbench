@@ -68,9 +68,7 @@ def test_renderer_rejects_zero_page_number(tmp_path) -> None:
 def test_renderer_rejects_missing_pdf(tmp_path) -> None:
     renderer = PyMuPdfRenderer()
 
-    document = create_document(
-        str(tmp_path / "missing.pdf")
-    )
+    document = create_document(str(tmp_path / "missing.pdf"))
 
     with pytest.raises(
         PdfRenderingError,

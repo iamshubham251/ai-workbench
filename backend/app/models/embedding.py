@@ -19,10 +19,7 @@ class DocumentEmbedding:
         if not self.vector:
             raise ValueError("vector must not be empty")
 
-        if not all(
-            isinstance(value, (int, float))
-            for value in self.vector
-        ):
+        if not all(isinstance(value, (int, float)) for value in self.vector):
             raise ValueError("vector values must be numeric")
 
     @property

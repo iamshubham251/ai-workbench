@@ -82,9 +82,7 @@ def test_supporting_evidence_is_preserved():
 
     result = ApprovalDecisionService().evaluate(
         workflow_id=uuid4(),
-        findings=(
-            InspectionFinding(finding="Minor wear", severity="low"),
-        ),
+        findings=(InspectionFinding(finding="Minor wear", severity="low"),),
         supporting_evidence=evidence,
     )
 

@@ -3,12 +3,12 @@ from uuid import uuid4
 
 import pytest
 
+from app.models.document import Document
 from app.models.pdf_processing import (
     PdfContentType,
     PdfPage,
     PdfProcessingResult,
 )
-from app.models.document import Document
 from app.services.pypdf_processor import PdfProcessingError, PypdfProcessor
 
 
@@ -25,11 +25,7 @@ def build_pdf(page_texts: list[str]) -> bytes:
     }
 
     for page_id, content_id, text in zip(page_ids, content_ids, page_texts):
-        stream = (
-            f"BT /F1 12 Tf 72 720 Td ({text}) Tj ET".encode()
-            if text
-            else b""
-        )
+        stream = f"BT /F1 12 Tf 72 720 Td ({text}) Tj ET".encode() if text else b""
 
         objects[page_id] = (
             f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
@@ -38,9 +34,7 @@ def build_pdf(page_texts: list[str]) -> bytes:
         ).encode()
 
         objects[content_id] = (
-            f"<< /Length {len(stream)} >>\nstream\n".encode()
-            + stream
-            + b"\nendstream"
+            f"<< /Length {len(stream)} >>\nstream\n".encode() + stream + b"\nendstream"
         )
 
     output = bytearray(b"%PDF-1.4\n")
@@ -57,10 +51,7 @@ def build_pdf(page_texts: list[str]) -> bytes:
     output.extend(f"xref\n0 {len(offsets)}\n".encode())
     output.extend(b"0000000000 65535 f \n")
     output.extend(
-        b"".join(
-            f"{offset:010d} 00000 n \n".encode()
-            for offset in offsets[1:]
-        )
+        b"".join(f"{offset:010d} 00000 n \n".encode() for offset in offsets[1:])
     )
 
     output.extend(

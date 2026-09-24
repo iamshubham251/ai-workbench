@@ -39,9 +39,7 @@ def test_gemini_provider_exposes_expected_identity_and_capabilities():
 
 
 def test_gemini_provider_generates_response():
-    fake_client = FakeClient(
-        response=SimpleNamespace(output_text="  Gemini result  ")
-    )
+    fake_client = FakeClient(response=SimpleNamespace(output_text="  Gemini result  "))
     provider = GeminiModelProvider(
         model_name="test-gemini",
         client=fake_client,

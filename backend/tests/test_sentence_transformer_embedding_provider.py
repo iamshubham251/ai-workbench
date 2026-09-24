@@ -11,7 +11,6 @@ from app.services.sentence_transformer_embedding_provider import (
     SentenceTransformerEmbeddingProvider,
 )
 
-
 MODEL_NAME = "all-MiniLM-L6-v2"
 
 
@@ -63,10 +62,7 @@ def test_provider_generates_normalized_embedding(
 
     embedding = provider.embed(chunk)
 
-    magnitude = sum(
-        value * value
-        for value in embedding.vector
-    ) ** 0.5
+    magnitude = sum(value * value for value in embedding.vector) ** 0.5
 
     assert magnitude == pytest.approx(1.0, abs=1e-5)
 
@@ -114,19 +110,13 @@ def test_provider_generates_batch_embeddings(
     embeddings = provider.embed_batch(chunks)
 
     assert len(embeddings) == 3
-    assert all(
-        isinstance(embedding, DocumentEmbedding)
-        for embedding in embeddings
-    )
+    assert all(isinstance(embedding, DocumentEmbedding) for embedding in embeddings)
     assert [embedding.chunk_index for embedding in embeddings] == [
         0,
         1,
         2,
     ]
-    assert all(
-        embedding.dimensions == 384
-        for embedding in embeddings
-    )
+    assert all(embedding.dimensions == 384 for embedding in embeddings)
 
 
 def test_provider_preserves_document_identity_in_batch(
@@ -151,10 +141,7 @@ def test_provider_preserves_document_identity_in_batch(
 
     embeddings = provider.embed_batch(chunks)
 
-    assert all(
-        embedding.document_id == document_id
-        for embedding in embeddings
-    )
+    assert all(embedding.document_id == document_id for embedding in embeddings)
 
 
 def test_provider_returns_empty_batch_for_empty_input(

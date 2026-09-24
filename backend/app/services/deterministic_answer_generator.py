@@ -2,7 +2,6 @@
 
 from app.services.answer_generator import (
     AnswerGenerationError,
-    AnswerGenerator,
 )
 from app.services.retriever import RetrievalResult
 
@@ -31,14 +30,11 @@ class DeterministicAnswerGenerator:
 
         for result in results:
             source = self._format_source(result)
-            evidence_lines.append(
-                f"- {result.text.strip()} [{source}]"
-            )
+            evidence_lines.append(f"- {result.text.strip()} [{source}]")
 
         return (
             f"Based on the retrieved knowledge-base evidence for "
-            f"the query \"{query.strip()}\":\n"
-            + "\n".join(evidence_lines)
+            f'the query "{query.strip()}":\n' + "\n".join(evidence_lines)
         )
 
     @staticmethod
@@ -50,9 +46,7 @@ class DeterministicAnswerGenerator:
         )
 
         section_text = (
-            f", section: {result.section_title.strip()}"
-            if result.section_title
-            else ""
+            f", section: {result.section_title.strip()}" if result.section_title else ""
         )
 
         return (

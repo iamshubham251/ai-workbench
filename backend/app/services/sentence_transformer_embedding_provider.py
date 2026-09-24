@@ -6,7 +6,6 @@ from app.models.document_chunk import DocumentChunk
 from app.models.embedding import DocumentEmbedding
 from app.services.embedding_provider import (
     EmbeddingError,
-    EmbeddingProvider,
 )
 
 
@@ -40,9 +39,7 @@ class SentenceTransformerEmbeddingProvider:
                 normalize_embeddings=True,
             )
         except Exception as exc:
-            raise EmbeddingError(
-                "Embedding generation failed"
-            ) from exc
+            raise EmbeddingError("Embedding generation failed") from exc
 
         return DocumentEmbedding(
             document_id=chunk.document_id,
@@ -66,9 +63,7 @@ class SentenceTransformerEmbeddingProvider:
                 normalize_embeddings=True,
             )
         except Exception as exc:
-            raise EmbeddingError(
-                "Batch embedding generation failed"
-            ) from exc
+            raise EmbeddingError("Batch embedding generation failed") from exc
 
         return tuple(
             DocumentEmbedding(

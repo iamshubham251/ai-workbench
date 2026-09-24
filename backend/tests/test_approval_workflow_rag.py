@@ -1,8 +1,8 @@
 from unittest.mock import Mock
 from uuid import uuid4
 
-from app.models.document import DocumentRole
 from app.models.approval_workflow import ApprovalDecision, ApprovalWorkflowResult
+from app.models.document import DocumentRole
 from app.models.document_content import DocumentContent
 from app.services.approval_workflow_service import ApprovalWorkflowService
 from app.services.rag_service import RagResponse
@@ -65,9 +65,7 @@ def test_execute_from_document_retrieves_sop_evidence():
     workflow.execute.assert_called_once_with(
         workflow_id=workflow_id,
         inspection_text="Inspection finding: conveyor belt joint damaged.",
-        supporting_evidence=(
-            "Damaged belt joints must be isolated and inspected.",
-        ),
+        supporting_evidence=("Damaged belt joints must be isolated and inspected.",),
         output_path=None,
     )
 

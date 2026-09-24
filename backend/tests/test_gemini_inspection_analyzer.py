@@ -1,6 +1,3 @@
-from uuid import uuid4
-
-from app.ai.deterministic_provider import DeterministicModelProvider
 from app.models.model import ModelResponse
 from app.services.gemini_inspection_analyzer import GeminiInspectionAnalyzer
 
@@ -42,9 +39,7 @@ def test_analyzer_extracts_structured_findings():
 
 
 def test_analyzer_includes_sop_evidence_in_prompt():
-    provider = FakeModelProvider(
-        "- finding: Guarding is damaged. | severity: medium"
-    )
+    provider = FakeModelProvider("- finding: Guarding is damaged. | severity: medium")
 
     GeminiInspectionAnalyzer(provider).analyze(
         "Guarding was damaged.",
@@ -55,13 +50,9 @@ def test_analyzer_includes_sop_evidence_in_prompt():
 
 
 def test_analyzer_instructs_model_not_to_invent_facts():
-    provider = FakeModelProvider(
-        "- finding: Belt wear observed. | severity: low"
-    )
+    provider = FakeModelProvider("- finding: Belt wear observed. | severity: low")
 
-    GeminiInspectionAnalyzer(provider).analyze(
-        "Belt wear observed."
-    )
+    GeminiInspectionAnalyzer(provider).analyze("Belt wear observed.")
 
     assert "Do not invent findings, severity, or page numbers." in provider.last_prompt
 
@@ -85,14 +76,13 @@ def test_analyzer_uses_model_output_for_extraction():
 """
     )
 
-    findings = GeminiInspectionAnalyzer(provider).analyze(
-        "Inspection report content."
-    )
+    findings = GeminiInspectionAnalyzer(provider).analyze("Inspection report content.")
 
     assert [finding.severity for finding in findings] == [
         "medium",
         "low",
     ]
+
 
 def test_analyzer_returns_no_findings_when_model_finds_none():
     provider = FakeModelProvider("")

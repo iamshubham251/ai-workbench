@@ -195,6 +195,7 @@ def test_documents_are_isolated():
     assert repository.get_by_document_id(document_a)[0].vector == (0.1, 0.2)
     assert repository.get_by_document_id(document_b)[0].vector == (0.9, 0.8)
 
+
 def test_repository_returns_embeddings_across_documents_in_stable_order():
     document_a = uuid4()
     document_b = uuid4()

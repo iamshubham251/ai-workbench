@@ -8,10 +8,7 @@ from app.services.inspection_finding_extractor import (
 
 
 def test_extracts_finding_with_all_fields():
-    text = (
-        "- finding: Emergency stop is not functional. "
-        "| severity: high | page: 4"
-    )
+    text = "- finding: Emergency stop is not functional. | severity: high | page: 4"
 
     findings = InspectionFindingExtractor().extract(text)
 
@@ -76,6 +73,4 @@ def test_unstructured_output_is_rejected():
         InspectionFindingExtractionError,
         match="no structured inspection findings",
     ):
-        InspectionFindingExtractor().extract(
-            "The inspection found several problems."
-        )
+        InspectionFindingExtractor().extract("The inspection found several problems.")

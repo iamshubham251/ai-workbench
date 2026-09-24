@@ -1,11 +1,10 @@
-﻿"""Dependency injection for application services."""
+"""Dependency injection for application services."""
 
-import sqlite3
 from pathlib import Path
 
-from app.ai.gemini_provider import GeminiModelProvider
 from app.agents.agent_context_builder import AgentContextBuilder
 from app.agents.agent_manager import AgentManager
+from app.ai.gemini_provider import GeminiModelProvider
 from app.ai.model_router import ModelRouter
 from app.config.settings import settings
 from app.repositories.chunk_sql_repository import SqlChunkRepository
@@ -34,7 +33,7 @@ from app.storage.local_storage import LocalStorage
 
 def get_document_service() -> DocumentService:
     """Create a document service for the current request."""
-    repository = DocumentRepository(db_path=settings.DATABASE_PATH)
+    repository = DocumentRepository()
     storage = LocalStorage(upload_dir=Path(settings.UPLOAD_DIR))
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
 
@@ -51,7 +50,9 @@ def get_document_content_service() -> DocumentContentService:
         document_service=get_document_service(),
         pdf_pipeline=PdfProcessingPipeline(
             pdf_processor=PypdfProcessor(),
-            ocr_processor=TesseractOcrProcessor(tesseract_cmd=settings.TESSERACT_CMD or None),
+            ocr_processor=TesseractOcrProcessor(
+                tesseract_cmd=settings.TESSERACT_CMD or None
+            ),
         ),
         normalizer=DocumentNormalizer(),
     )
@@ -59,103 +60,84 @@ def get_document_content_service() -> DocumentContentService:
 
 def get_knowledge_ingestion_service():
     """Create and clean up the local knowledge-base ingestion service."""
-    connection = sqlite3.connect(settings.DATABASE_PATH)
+    chunk_repository = SqlChunkRepository()
+    embedding_repository = EmbeddingRepository()
 
-    try:
-        chunk_repository = SqlChunkRepository(connection)
-        embedding_repository = EmbeddingRepository(connection)
-
-        yield KnowledgeIngestionService(
-            pdf_pipeline=PdfProcessingPipeline(
-                pdf_processor=PypdfProcessor(),
-                ocr_processor=TesseractOcrProcessor(tesseract_cmd=settings.TESSERACT_CMD or None),
+    yield KnowledgeIngestionService(
+        pdf_pipeline=PdfProcessingPipeline(
+            pdf_processor=PypdfProcessor(),
+            ocr_processor=TesseractOcrProcessor(
+                tesseract_cmd=settings.TESSERACT_CMD or None
             ),
-            normalizer=DocumentNormalizer(),
-            chunker=DocumentChunker(),
-            embedding_provider=SentenceTransformerEmbeddingProvider(),
-            chunk_repository=chunk_repository,
-            embedding_repository=embedding_repository,
-        )
-    finally:
-        connection.close()
+        ),
+        normalizer=DocumentNormalizer(),
+        chunker=DocumentChunker(),
+        embedding_provider=SentenceTransformerEmbeddingProvider(),
+        chunk_repository=chunk_repository,
+        embedding_repository=embedding_repository,
+    )
 
 
 def get_rag_service():
     """Create and clean up the local RAG query service."""
-    connection = sqlite3.connect(settings.DATABASE_PATH)
+    chunk_repository = SqlChunkRepository()
+    embedding_repository = EmbeddingRepository()
+    document_repository = DocumentRepository()
 
-    try:
-        chunk_repository = SqlChunkRepository(connection)
-        embedding_repository = EmbeddingRepository(connection)
-        document_repository = DocumentRepository(settings.DATABASE_PATH)
-
-        yield RagService(
-            chunk_repository=chunk_repository,
-            embedding_repository=embedding_repository,
-            document_repository=document_repository,
-            query_embedding_service=QueryEmbeddingService(),
-            answer_generator=DeterministicAnswerGenerator(),
-        )
-    finally:
-        connection.close()
+    yield RagService(
+        chunk_repository=chunk_repository,
+        embedding_repository=embedding_repository,
+        document_repository=document_repository,
+        query_embedding_service=QueryEmbeddingService(),
+        answer_generator=DeterministicAnswerGenerator(),
+    )
 
 
 def get_agent_manager():
     """Create and clean up the grounded application agent manager."""
-    connection = sqlite3.connect(settings.DATABASE_PATH)
+    chunk_repository = SqlChunkRepository()
+    embedding_repository = EmbeddingRepository()
+    document_repository = DocumentRepository()
 
-    try:
-        chunk_repository = SqlChunkRepository(connection)
-        embedding_repository = EmbeddingRepository(connection)
-        document_repository = DocumentRepository(settings.DATABASE_PATH)
+    rag_service = RagService(
+        chunk_repository=chunk_repository,
+        embedding_repository=embedding_repository,
+        document_repository=document_repository,
+        query_embedding_service=QueryEmbeddingService(),
+        answer_generator=DeterministicAnswerGenerator(),
+    )
 
-        rag_service = RagService(
-            chunk_repository=chunk_repository,
-            embedding_repository=embedding_repository,
-            document_repository=document_repository,
-            query_embedding_service=QueryEmbeddingService(),
-            answer_generator=DeterministicAnswerGenerator(),
-        )
+    context_builder = AgentContextBuilder(rag_service)
 
-        context_builder = AgentContextBuilder(rag_service)
+    gemini_provider = GeminiModelProvider()
+    model_router = ModelRouter(providers=(gemini_provider,))
 
-        gemini_provider = GeminiModelProvider()
-        model_router = ModelRouter(providers=(gemini_provider,))
-
-        yield AgentManager(
-            model_router=model_router,
-            context_builder=context_builder,
-        )
-    finally:
-        connection.close()
+    yield AgentManager(
+        model_router=model_router,
+        context_builder=context_builder,
+    )
 
 
 def get_approval_workflow_service():
     """Create and clean up the inspection approval workflow service."""
-    connection = sqlite3.connect(settings.DATABASE_PATH)
+    chunk_repository = SqlChunkRepository()
+    embedding_repository = EmbeddingRepository()
+    document_repository = DocumentRepository()
 
-    try:
-        chunk_repository = SqlChunkRepository(connection)
-        embedding_repository = EmbeddingRepository(connection)
-        document_repository = DocumentRepository(settings.DATABASE_PATH)
+    rag_service = RagService(
+        chunk_repository=chunk_repository,
+        embedding_repository=embedding_repository,
+        document_repository=document_repository,
+        query_embedding_service=QueryEmbeddingService(),
+        answer_generator=DeterministicAnswerGenerator(),
+    )
 
-        rag_service = RagService(
-            chunk_repository=chunk_repository,
-            embedding_repository=embedding_repository,
-            document_repository=document_repository,
-            query_embedding_service=QueryEmbeddingService(),
-            answer_generator=DeterministicAnswerGenerator(),
-        )
+    gemini_provider = GeminiModelProvider()
 
-        gemini_provider = GeminiModelProvider()
-
-        yield ApprovalWorkflowService(
-            inspection_analyzer=GeminiInspectionAnalyzer(
-                model_provider=gemini_provider,
-            ),
-            document_content_service=get_document_content_service(),
-            rag_service=rag_service,
-        )
-    finally:
-        connection.close()
-
+    yield ApprovalWorkflowService(
+        inspection_analyzer=GeminiInspectionAnalyzer(
+            model_provider=gemini_provider,
+        ),
+        document_content_service=get_document_content_service(),
+        rag_service=rag_service,
+    )

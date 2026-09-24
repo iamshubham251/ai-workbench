@@ -17,3 +17,5 @@ slowapi
 sentry-sdk
 prometheus-fastapi-instrumentator
 structlog
+sqlalchemy
+psycopg2-binary

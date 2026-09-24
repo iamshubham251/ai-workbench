@@ -3,8 +3,8 @@
 from pathlib import Path
 from uuid import UUID
 
-from app.models.document import DocumentRole
 from app.models.approval_workflow import ApprovalWorkflowResult
+from app.models.document import DocumentRole
 from app.services.approval_decision_service import ApprovalDecisionService
 from app.services.approval_note_generator import ApprovalNoteGenerator
 from app.services.document_content_service import DocumentContentService
@@ -83,9 +83,7 @@ class ApprovalWorkflowService:
                 role=DocumentRole.SOP,
             )
             evidence = tuple(
-                result.text
-                for result in rag_response.results
-                if result.text.strip()
+                result.text for result in rag_response.results if result.text.strip()
             )
 
         return self.execute(

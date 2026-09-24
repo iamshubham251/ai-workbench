@@ -11,9 +11,7 @@ from app.models.agent import AgentStatus, AgentTask
 def create_agent_manager() -> AgentManager:
     """Create an Agent Manager with a deterministic document provider."""
 
-    router = ModelRouter(
-        providers=(DeterministicModelProvider(),)
-    )
+    router = ModelRouter(providers=(DeterministicModelProvider(),))
     return AgentManager(model_router=router)
 
 
@@ -66,11 +64,7 @@ def test_agent_manager_returns_provider_failure_as_agent_failure():
         def generate(self, request):
             raise RuntimeError("model execution failed")
 
-    manager = AgentManager(
-        model_router=ModelRouter(
-            providers=(FailingProvider(),)
-        )
-    )
+    manager = AgentManager(model_router=ModelRouter(providers=(FailingProvider(),)))
 
     task = AgentTask(
         task_id=uuid4(),

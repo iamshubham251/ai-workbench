@@ -9,9 +9,7 @@ from app.main import app
 
 def test_agent_execute_api():
     manager = AgentManager(
-        model_router=ModelRouter(
-            providers=(DeterministicModelProvider(),)
-        )
+        model_router=ModelRouter(providers=(DeterministicModelProvider(),))
     )
 
     app.dependency_overrides[get_agent_manager] = lambda: manager
@@ -30,9 +28,7 @@ def test_agent_execute_api():
 
         body = response.json()
         assert body["status"] == "completed"
-        assert body["output"] == (
-            "Model response: Summarize the inspection findings."
-        )
+        assert body["output"] == ("Model response: Summarize the inspection findings.")
         assert body["task_id"]
         assert body["error"] is None
     finally:

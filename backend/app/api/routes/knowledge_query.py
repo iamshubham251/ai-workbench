@@ -13,7 +13,6 @@ from app.schemas.knowledge_query import (
 from app.services.document_service import DocumentService
 from app.services.rag_service import RagService
 
-
 router = APIRouter()
 
 
@@ -50,6 +49,7 @@ def query_knowledge_base(
         ),
     )
 
+
 @router.post(
     "/{document_id}/query",
     response_model=KnowledgeQueryResponse,
@@ -84,4 +84,3 @@ def query_knowledge(
             for item in result.results
         ),
     )
-

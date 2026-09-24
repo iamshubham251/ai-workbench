@@ -1,8 +1,6 @@
-﻿from pathlib import Path
-from typing import List
+from pathlib import Path
 
 from pydantic_settings import BaseSettings
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
@@ -12,9 +10,11 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     MAX_UPLOAD_SIZE_MB: int = 25
     DATABASE_PATH: str = "./ai_workbench.db"
+    DATABASE_URL: str | None = None
+    REDIS_URL: str | None = None
     UPLOAD_DIR: str = "../data/uploads"
     OUTPUT_DIR: str = "../data/outputs"
-    ALLOWED_ORIGINS: List[str] = [
+    ALLOWED_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:5175",

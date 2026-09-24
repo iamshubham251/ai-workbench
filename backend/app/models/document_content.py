@@ -45,8 +45,4 @@ class DocumentContent:
     @property
     def full_text(self) -> str:
         """Return all normalized page text as one document."""
-        return "\n\n".join(
-            page.strip()
-            for page in self.pages
-            if page.strip()
-        )
+        return "\n\n".join(page.strip() for page in self.pages if page.strip())

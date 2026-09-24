@@ -50,9 +50,7 @@ class PyMuPdfRenderer:
         try:
             with pymupdf.open(source_path) as pdf:
                 if page_number > len(pdf):
-                    raise PdfRenderingError(
-                        f"PDF does not contain page {page_number}"
-                    )
+                    raise PdfRenderingError(f"PDF does not contain page {page_number}")
 
                 page = pdf[page_number - 1]
 
@@ -69,6 +67,4 @@ class PyMuPdfRenderer:
         except PdfRenderingError:
             raise
         except (OSError, RuntimeError) as exc:
-            raise PdfRenderingError(
-                "PDF page could not be rendered"
-            ) from exc
+            raise PdfRenderingError("PDF page could not be rendered") from exc

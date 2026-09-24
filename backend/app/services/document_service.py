@@ -1,7 +1,6 @@
 import os
 import uuid
 from datetime import datetime, timezone
-from typing import List
 from uuid import UUID
 
 from fastapi import HTTPException, UploadFile
@@ -59,9 +58,7 @@ class DocumentService:
 
         # --- persist file first ---
         try:
-            stored_name, storage_path = await self._storage.save_file(
-                file, document_id
-            )
+            stored_name, storage_path = await self._storage.save_file(file, document_id)
             if not self._storage.file_exists(storage_path):
                 raise RuntimeError("Stored file could not be verified")
         except ValueError as exc:
@@ -99,7 +96,7 @@ class DocumentService:
     # Query
     # ------------------------------------------------------------------
 
-    def list_documents(self) -> List[Document]:
+    def list_documents(self) -> list[Document]:
         return self._repo.list_documents()
 
     def get_document(self, document_id: UUID) -> Document:

@@ -9,7 +9,6 @@ Each handler:
 No SQL, no file I/O, no business logic here.
 """
 
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
@@ -32,10 +31,10 @@ async def upload_document(
     return DocumentResponse.model_validate(doc.__dict__)
 
 
-@router.get("", response_model=List[DocumentResponse])
+@router.get("", response_model=list[DocumentResponse])
 def list_documents(
     service: DocumentService = Depends(get_document_service),
-) -> List[DocumentResponse]:
+) -> list[DocumentResponse]:
     docs = service.list_documents()
     return [DocumentResponse.model_validate(d.__dict__) for d in docs]
 

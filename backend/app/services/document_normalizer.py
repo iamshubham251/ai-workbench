@@ -15,8 +15,7 @@ class DocumentNormalizer:
     ) -> DocumentContent:
         """Normalize page text and detect simple document sections."""
         normalized_pages = tuple(
-            self._normalize_text(page.text)
-            for page in result.pages
+            self._normalize_text(page.text) for page in result.pages
         )
 
         sections = self._detect_sections(normalized_pages)
@@ -35,10 +34,7 @@ class DocumentNormalizer:
         text = text.replace("\r\n", "\n")
         text = text.replace("\r", "\n")
 
-        lines = [
-            re.sub(r"[ \t]+", " ", line).strip()
-            for line in text.split("\n")
-        ]
+        lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.split("\n")]
 
         normalized_lines: list[str] = []
         previous_blank = False

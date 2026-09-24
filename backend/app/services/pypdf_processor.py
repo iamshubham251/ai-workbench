@@ -42,9 +42,7 @@ class PypdfProcessor(PdfProcessor):
                 text = page.extract_text() or ""
             except Exception:
                 text = ""
-                warnings.append(
-                    f"Page {page_number}: text could not be extracted"
-                )
+                warnings.append(f"Page {page_number}: text could not be extracted")
 
             pages.append(
                 PdfPage(

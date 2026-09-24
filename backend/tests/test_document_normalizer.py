@@ -52,9 +52,7 @@ def test_normalizer_normalizes_whitespace() -> None:
 
     normalized = DocumentNormalizer().normalize(result)
 
-    assert normalized.pages == (
-        "Hello world\n\nThis is text.",
-    )
+    assert normalized.pages == ("Hello world\n\nThis is text.",)
 
 
 def test_normalizer_removes_null_characters() -> None:
@@ -69,9 +67,7 @@ def test_normalizer_removes_null_characters() -> None:
 
     normalized = DocumentNormalizer().normalize(result)
 
-    assert normalized.pages == (
-        "Hello world",
-    )
+    assert normalized.pages == ("Hello world",)
 
 
 def test_normalizer_preserves_page_boundaries() -> None:
@@ -152,9 +148,7 @@ def test_normalizer_detects_numbered_heading() -> None:
 
     assert normalized.section_count == 1
     assert normalized.sections[0].title == "1. Inspection Findings"
-    assert normalized.sections[0].text == (
-        "The inspection identified several issues."
-    )
+    assert normalized.sections[0].text == ("The inspection identified several issues.")
 
 
 def test_normalizer_tracks_section_across_pages() -> None:

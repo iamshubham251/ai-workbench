@@ -21,9 +21,7 @@ class PdfContentDetectionConfig:
             raise ValueError("min_meaningful_words must be positive")
 
         if not 0.0 < self.min_text_page_ratio <= 1.0:
-            raise ValueError(
-                "min_text_page_ratio must be greater than 0 and at most 1"
-            )
+            raise ValueError("min_text_page_ratio must be greater than 0 and at most 1")
 
 
 class PdfContentDetector:
@@ -40,10 +38,7 @@ class PdfContentDetector:
         if not pages:
             return PdfContentType.EMPTY
 
-        meaningful_pages = sum(
-            self._has_meaningful_text(page.text)
-            for page in pages
-        )
+        meaningful_pages = sum(self._has_meaningful_text(page.text) for page in pages)
 
         if meaningful_pages == 0:
             return PdfContentType.EMPTY

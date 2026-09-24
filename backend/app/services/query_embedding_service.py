@@ -27,8 +27,6 @@ class QueryEmbeddingService:
                 normalize_embeddings=True,
             )
         except Exception as exc:
-            raise EmbeddingError(
-                "Query embedding generation failed"
-            ) from exc
+            raise EmbeddingError("Query embedding generation failed") from exc
 
         return tuple(float(value) for value in vector)

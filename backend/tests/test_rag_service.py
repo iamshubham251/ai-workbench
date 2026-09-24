@@ -5,7 +5,6 @@ import pytest
 
 from app.models.document import Document, DocumentRole
 from app.models.document_chunk import DocumentChunk
-from app.models.embedding import DocumentEmbedding
 from app.repositories.chunk_sql_repository import SqlChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.embedding_repository import EmbeddingRepository
@@ -80,9 +79,7 @@ def test_rag_service_retrieves_relevant_chunk():
         top_k=1,
     )
 
-    assert response.query == (
-        "What is the conveyor belt inspection procedure?"
-    )
+    assert response.query == ("What is the conveyor belt inspection procedure?")
     assert response.result_count == 1
     assert response.answer
     assert "Conveyor belt inspection" in response.answer
@@ -109,9 +106,7 @@ def test_rag_service_returns_empty_for_unknown_document():
     )
 
     assert response.result_count == 0
-    assert response.answer == (
-        "No supporting evidence was found for this query."
-    )
+    assert response.answer == ("No supporting evidence was found for this query.")
 
 
 def test_rag_service_rejects_empty_query():
@@ -124,6 +119,7 @@ def test_rag_service_rejects_empty_query():
             document_id=uuid4(),
             query="   ",
         )
+
 
 def test_rag_service_returns_grounded_fallback_when_evidence_is_weak():
     connection = sqlite3.connect(":memory:")
@@ -167,10 +163,7 @@ def test_rag_service_returns_grounded_fallback_when_evidence_is_weak():
     )
 
     assert response.result_count == 0
-    assert response.answer == (
-        "No supporting evidence was found for this query."
-    )
-
+    assert response.answer == ("No supporting evidence was found for this query.")
 
 
 def test_rag_service_query_all_can_filter_by_document_role(tmp_path):
@@ -190,8 +183,12 @@ def test_rag_service_query_all_can_filter_by_document_role(tmp_path):
         size_bytes=100,
         status="uploaded",
         storage_path="/uploads/sop.pdf",
-        created_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc),
-        updated_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc),
+        created_at=__import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc
+        ),
+        updated_at=__import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc
+        ),
         role=DocumentRole.SOP,
     )
 
@@ -330,6 +327,7 @@ def test_rag_service_queries_across_all_indexed_documents():
     assert response.results[0].section_title == "Emergency Safety"
     assert response.answer
 
+
 def test_rag_service_queries_across_all_indexed_documents():
     connection = sqlite3.connect(":memory:")
 
@@ -393,4 +391,3 @@ def test_rag_service_queries_across_all_indexed_documents():
     assert response.results[0].page_numbers == (4,)
     assert response.results[0].section_title == "Emergency Safety"
     assert response.answer
-

@@ -37,10 +37,7 @@ class Retriever:
         if not 0.0 <= min_score <= 1.0:
             raise ValueError("min_score must be between 0.0 and 1.0")
 
-        chunk_map = {
-            (chunk.document_id, chunk.chunk_index): chunk
-            for chunk in chunks
-        }
+        chunk_map = {(chunk.document_id, chunk.chunk_index): chunk for chunk in chunks}
 
         results: list[RetrievalResult] = []
 
@@ -74,4 +71,3 @@ class Retriever:
         )
 
         return tuple(results[:top_k])
-

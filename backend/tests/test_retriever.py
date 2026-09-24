@@ -175,6 +175,7 @@ def test_retriever_preserves_chunk_metadata():
     assert result.section_title == "Safety Requirements"
     assert result.score == pytest.approx(1.0)
 
+
 def test_retriever_uses_chunk_index_as_deterministic_tiebreaker():
     """Equal similarity scores must produce stable chunk ordering."""
     document_id = uuid4()
@@ -223,6 +224,7 @@ def test_retriever_uses_chunk_index_as_deterministic_tiebreaker():
     )
 
     assert [result.chunk_index for result in results] == [0, 1, 2]
+
 
 def test_retriever_filters_results_below_minimum_score():
     document_id = uuid4()
@@ -288,6 +290,7 @@ def test_retriever_rejects_invalid_min_score():
             ),
             min_score=1.1,
         )
+
 
 def test_retriever_matches_chunks_by_document_and_chunk_index():
     """Chunks must be matched using the composite (document_id, chunk_index) key."""

@@ -2,7 +2,6 @@
 
 from uuid import uuid4
 
-from app.models.document_chunk import DocumentChunk
 from app.services.answer_generator import AnswerGenerator
 from app.services.retriever import RetrievalResult
 

@@ -21,9 +21,7 @@ class DocumentChunkingConfig:
             raise ValueError("overlap_characters must not be negative")
 
         if self.overlap_characters >= self.max_characters:
-            raise ValueError(
-                "overlap_characters must be smaller than max_characters"
-            )
+            raise ValueError("overlap_characters must be smaller than max_characters")
 
 
 class DocumentChunker:
@@ -106,10 +104,7 @@ class DocumentChunker:
             if next_start <= start:
                 next_start = end
 
-            while (
-                next_start < len(normalized)
-                and normalized[next_start].isspace()
-            ):
+            while next_start < len(normalized) and normalized[next_start].isspace():
                 next_start += 1
 
             start = next_start

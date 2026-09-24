@@ -5,7 +5,9 @@ from app.models.document import Document, DocumentRole
 from app.repositories.document_repository import DocumentRepository
 
 
-def make_document(filename: str = "report.pdf", role: DocumentRole = DocumentRole.OTHER) -> Document:
+def make_document(
+    filename: str = "report.pdf", role: DocumentRole = DocumentRole.OTHER
+) -> Document:
     now = datetime.now(timezone.utc)
     return Document(
         id=uuid4(),

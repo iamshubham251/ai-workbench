@@ -1,8 +1,8 @@
-from uuid import uuid4
 from unittest.mock import Mock
+from uuid import uuid4
 
-from app.models.document_content import DocumentContent
 from app.models.document import Document
+from app.models.document_content import DocumentContent
 from app.models.pdf_processing import PdfContentType, PdfPage, PdfProcessingResult
 from app.services.document_content_service import DocumentContentService
 

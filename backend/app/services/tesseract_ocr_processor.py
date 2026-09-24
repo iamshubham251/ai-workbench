@@ -1,4 +1,4 @@
-﻿"""Tesseract-backed OCR processing."""
+"""Tesseract-backed OCR processing."""
 
 from io import BytesIO
 from pathlib import Path
@@ -14,7 +14,6 @@ from app.models.document import Document
 from app.models.ocr import OcrPage, OcrProcessingResult
 from app.services.ocr_processor import (
     OcrProcessingError,
-    OcrProcessor,
 )
 
 
@@ -50,9 +49,7 @@ class TesseractOcrProcessor:
             resolved_path = Path(configured_path)
 
             if not resolved_path.is_file():
-                raise OcrProcessingError(
-                    "Tesseract executable could not be found"
-                )
+                raise OcrProcessingError("Tesseract executable could not be found")
 
             return str(resolved_path)
 
@@ -61,25 +58,19 @@ class TesseractOcrProcessor:
         if path_tesseract:
             return path_tesseract
 
-        windows_default = Path(
-            r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-        )
+        windows_default = Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe")
 
         if windows_default.is_file():
             return str(windows_default)
 
-        raise OcrProcessingError(
-            "Tesseract executable could not be found"
-        )
+        raise OcrProcessingError("Tesseract executable could not be found")
 
     def process(self, document: Document) -> OcrProcessingResult:
         """Run OCR against every page of a stored PDF."""
         source_path = Path(document.storage_path)
 
         if not source_path.is_file():
-            raise OcrProcessingError(
-                "OCR source document is unavailable"
-            )
+            raise OcrProcessingError("OCR source document is unavailable")
 
         try:
             with pymupdf.open(source_path) as pdf:
@@ -92,9 +83,7 @@ class TesseractOcrProcessor:
                     try:
                         text, confidence = self._ocr_page(page)
                     except Exception:
-                        warnings.append(
-                            f"Page {page_number}: OCR failed"
-                        )
+                        warnings.append(f"Page {page_number}: OCR failed")
                         pages.append(
                             OcrPage(
                                 page_number=page_number,
@@ -121,9 +110,7 @@ class TesseractOcrProcessor:
         except OcrProcessingError:
             raise
         except (OSError, RuntimeError) as exc:
-            raise OcrProcessingError(
-                "OCR source document could not be read"
-            ) from exc
+            raise OcrProcessingError("OCR source document could not be read") from exc
 
     def _ocr_page(
         self,
@@ -138,9 +125,7 @@ class TesseractOcrProcessor:
             alpha=False,
         )
 
-        image = Image.open(
-            BytesIO(pixmap.tobytes("png"))
-        )
+        image = Image.open(BytesIO(pixmap.tobytes("png")))
 
         data = pytesseract.image_to_data(
             image,
@@ -168,16 +153,10 @@ class TesseractOcrProcessor:
                 continue
 
             if numeric_confidence >= 0:
-                confidences.append(
-                    numeric_confidence / 100.0
-                )
+                confidences.append(numeric_confidence / 100.0)
 
         text = " ".join(text_parts)
 
-        confidence = (
-            sum(confidences) / len(confidences)
-            if confidences
-            else None
-        )
+        confidence = sum(confidences) / len(confidences) if confidences else None
 
         return text, confidence

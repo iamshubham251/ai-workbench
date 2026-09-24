@@ -1,0 +1,4 @@
+[lint]
+# Ignore B008: Do not perform function call `Depends` in argument defaults
+# This is a standard pattern in FastAPI and we want to allow it.
+extend-ignore = ["B008"]

@@ -3,10 +3,10 @@
 from dataclasses import dataclass
 from uuid import UUID
 
+from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
 from app.models.document_content import DocumentContent
 from app.models.embedding import DocumentEmbedding
-from app.models.document import Document
 from app.repositories.chunk_sql_repository import SqlChunkRepository
 from app.repositories.embedding_repository import EmbeddingRepository
 from app.services.document_chunker import DocumentChunker
@@ -48,14 +48,12 @@ class KnowledgeIngestionService:
 
         processing_result = self.pdf_pipeline.process(document)
 
-        content: DocumentContent = self.normalizer.normalize(
-            processing_result
-        )
+        content: DocumentContent = self.normalizer.normalize(processing_result)
 
         chunks: tuple[DocumentChunk, ...] = self.chunker.chunk(content)
 
-        embeddings: tuple[DocumentEmbedding, ...] = (
-            self.embedding_provider.embed_batch(chunks)
+        embeddings: tuple[DocumentEmbedding, ...] = self.embedding_provider.embed_batch(
+            chunks
         )
 
         self.chunk_repository.save(
@@ -77,12 +75,8 @@ class KnowledgeIngestionService:
     def get_status(self, document_id: UUID) -> KnowledgeIngestionResult:
         """Return persisted indexing status for a document."""
 
-        chunk_count = self.chunk_repository.count_by_document_id(
-            document_id
-        )
-        embedding_count = self.embedding_repository.count_by_document_id(
-            document_id
-        )
+        chunk_count = self.chunk_repository.count_by_document_id(document_id)
+        embedding_count = self.embedding_repository.count_by_document_id(document_id)
 
         return KnowledgeIngestionResult(
             document_id=document_id,

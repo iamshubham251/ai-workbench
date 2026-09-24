@@ -16,6 +16,7 @@ class Document:
     Domain entity representing an ingested document.
     Status lifecycle: uploaded -> processing -> processed | failed
     """
+
     id: UUID
     original_filename: str
     stored_filename: str

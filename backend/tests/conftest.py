@@ -5,16 +5,14 @@ All tests use isolated temp directories for uploads and DB,
 so they never touch production data and are fully repeatable.
 """
 
-import os
-import tempfile
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import create_app
 from app.config.settings import settings
 from app.dependencies import get_document_service
+from app.main import create_app
 from app.repositories.document_repository import DocumentRepository
 from app.services.document_service import DocumentService
 from app.storage.local_storage import LocalStorage
@@ -44,7 +42,9 @@ def client(tmp_env):
         repo = DocumentRepository(db_path=tmp_env["db"])
         storage = LocalStorage(upload_dir=tmp_env["uploads"])
         max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
-        return DocumentService(repository=repo, storage=storage, max_upload_bytes=max_bytes)
+        return DocumentService(
+            repository=repo, storage=storage, max_upload_bytes=max_bytes
+        )
 
     app = create_app()
     app.dependency_overrides[get_document_service] = _override_service
@@ -55,6 +55,7 @@ def client(tmp_env):
 # ---------------------------------------------------------------------------
 # Helpers for building in-memory test files
 # ---------------------------------------------------------------------------
+
 
 def make_file(content: bytes, filename: str, content_type: str):
     """Return a tuple suitable for httpx multipart upload."""

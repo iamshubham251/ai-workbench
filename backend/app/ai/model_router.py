@@ -37,8 +37,7 @@ class ModelRouter:
                 return provider
 
         raise ModelRoutingError(
-            f"No model provider supports capability "
-            f"'{capability.value}'."
+            f"No model provider supports capability '{capability.value}'."
         )
 
     def _validate_providers(self) -> None:

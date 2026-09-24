@@ -25,9 +25,7 @@ def create_content(
 
 
 def test_chunker_returns_document_chunks() -> None:
-    content = create_content(
-        ("This is a test document.",)
-    )
+    content = create_content(("This is a test document.",))
 
     chunks = DocumentChunker().chunk(content)
 
@@ -96,11 +94,7 @@ def test_chunker_skips_empty_pages() -> None:
 
 
 def test_chunker_normalizes_whitespace() -> None:
-    content = create_content(
-        (
-            "  This   is\n\n a   document.  ",
-        )
-    )
+    content = create_content(("  This   is\n\n a   document.  ",))
 
     chunks = DocumentChunker().chunk(content)
 
@@ -115,9 +109,7 @@ def test_chunker_preserves_section_title() -> None:
     )
 
     content = create_content(
-        (
-            "The inspection identified an issue.",
-        ),
+        ("The inspection identified an issue.",),
         sections=(section,),
     )
 
@@ -127,11 +119,7 @@ def test_chunker_preserves_section_title() -> None:
 
 
 def test_chunker_uses_none_when_page_has_no_section() -> None:
-    content = create_content(
-        (
-            "Content without a detected section.",
-        )
-    )
+    content = create_content(("Content without a detected section.",))
 
     chunks = DocumentChunker().chunk(content)
 
@@ -139,11 +127,7 @@ def test_chunker_uses_none_when_page_has_no_section() -> None:
 
 
 def test_chunker_splits_long_text() -> None:
-    content = create_content(
-        (
-            " ".join(["word"] * 100),
-        )
-    )
+    content = create_content((" ".join(["word"] * 100),))
 
     chunker = DocumentChunker(
         DocumentChunkingConfig(
@@ -155,18 +139,13 @@ def test_chunker_splits_long_text() -> None:
     chunks = chunker.chunk(content)
 
     assert len(chunks) > 1
-    assert all(
-        len(chunk.text) <= 100
-        for chunk in chunks
-    )
+    assert all(len(chunk.text) <= 100 for chunk in chunks)
 
 
 def test_chunker_creates_overlapping_chunks() -> None:
     words = [f"word{i}" for i in range(1, 31)]
 
-    content = create_content(
-        (" ".join(words),)
-    )
+    content = create_content((" ".join(words),))
 
     chunker = DocumentChunker(
         DocumentChunkingConfig(

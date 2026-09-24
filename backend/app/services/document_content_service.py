@@ -3,8 +3,8 @@
 from uuid import UUID
 
 from app.models.document_content import DocumentContent
-from app.services.document_service import DocumentService
 from app.services.document_normalizer import DocumentNormalizer
+from app.services.document_service import DocumentService
 from app.services.pdf_processing_pipeline import PdfProcessingPipeline
 
 

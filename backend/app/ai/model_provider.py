@@ -30,4 +30,3 @@ class ModelProvider(Protocol):
     def generate(self, request: ModelRequest) -> ModelResponse:
         """Generate a response for a model request."""
         ...
-

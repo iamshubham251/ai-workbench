@@ -44,9 +44,7 @@ class AgentManager:
                 routing_request.capability
             )
 
-            response = provider.generate(
-                ModelRequest(prompt=routing_request.prompt)
-            )
+            response = provider.generate(ModelRequest(prompt=routing_request.prompt))
 
             return AgentResult(
                 task_id=task.task_id,
@@ -87,8 +85,7 @@ class AgentManager:
                 source += f", section: {item.section_title}"
 
             evidence_blocks.append(
-                f"[Evidence {index} | {source} | score={item.score:.3f}]\n"
-                f"{item.text}"
+                f"[Evidence {index} | {source} | score={item.score:.3f}]\n{item.text}"
             )
 
         evidence = "\n\n".join(evidence_blocks)

@@ -12,7 +12,6 @@ from app.schemas.knowledge import KnowledgeIngestionResponse
 from app.services.document_service import DocumentService
 from app.services.knowledge_ingestion_service import KnowledgeIngestionService
 
-
 router = APIRouter()
 
 

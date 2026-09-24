@@ -85,10 +85,7 @@ class PdfProcessingPipeline:
         ocr_warnings: tuple[str, ...],
     ) -> PdfProcessingResult:
         """Keep extracted text and fill sparse pages using OCR."""
-        ocr_by_page = {
-            page.page_number: page
-            for page in ocr_pages
-        }
+        ocr_by_page = {page.page_number: page for page in ocr_pages}
 
         merged_pages: list[PdfPage] = []
 

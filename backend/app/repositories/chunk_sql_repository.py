@@ -1,33 +1,41 @@
-"""SQLite repository for persistent document chunks."""
+"""SQLAlchemy repository for persistent document chunks."""
 
-import sqlite3
 from uuid import UUID
 
+from sqlalchemy import text
+from sqlalchemy.engine import Connection
+
+from app.database import get_connection
 from app.models.document_chunk import DocumentChunk
 
 
 class SqlChunkRepository:
-    """Persist and retrieve document chunks using SQLite."""
+    """Persist and retrieve document chunks using SQLAlchemy."""
 
-    def __init__(self, connection: sqlite3.Connection) -> None:
-        self.connection = connection
+    def __init__(self, connection=None) -> None:
+        # We optionally accept connection to match previous signature,
+        # but in SQLAlchemy we usually open short-lived connections.
         self._create_table()
+
+    def _get_connection(self) -> Connection:
+        return get_connection()
 
     def _create_table(self) -> None:
         """Create the document chunks table if it does not exist."""
-        self.connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS document_chunks (
-                document_id TEXT NOT NULL,
-                chunk_index INTEGER NOT NULL,
-                text TEXT NOT NULL,
-                page_numbers TEXT NOT NULL,
-                section_title TEXT,
-                PRIMARY KEY (document_id, chunk_index)
+        with self._get_connection() as conn:
+            conn.execute(
+                text("""
+                CREATE TABLE IF NOT EXISTS document_chunks (
+                    document_id VARCHAR(36) NOT NULL,
+                    chunk_index INTEGER NOT NULL,
+                    text TEXT NOT NULL,
+                    page_numbers TEXT NOT NULL,
+                    section_title TEXT,
+                    PRIMARY KEY (document_id, chunk_index)
+                )
+                """)
             )
-            """
-        )
-        self.connection.commit()
+            conn.commit()
 
     def save(
         self,
@@ -37,128 +45,133 @@ class SqlChunkRepository:
         """Replace all stored chunks for a document."""
         self.delete_by_document_id(document_id)
 
-        self.connection.executemany(
-            """
-            INSERT INTO document_chunks (
-                document_id,
-                chunk_index,
-                text,
-                page_numbers,
-                section_title
-            )
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            [
-                (
-                    str(document_id),
-                    chunk.chunk_index,
-                    chunk.text,
-                    ",".join(
-                        str(page)
-                        for page in chunk.page_numbers
-                    ),
-                    chunk.section_title,
-                )
-                for chunk in chunks
-            ],
-        )
+        if not chunks:
+            return
 
-        self.connection.commit()
+        with self._get_connection() as conn:
+            conn.execute(
+                text("""
+                INSERT INTO document_chunks (
+                    document_id,
+                    chunk_index,
+                    text,
+                    page_numbers,
+                    section_title
+                )
+                VALUES (
+                    :document_id, :chunk_index, :text, :page_numbers, :section_title
+                )
+                """),
+                [
+                    {
+                        "document_id": str(document_id),
+                        "chunk_index": chunk.chunk_index,
+                        "text": chunk.text,
+                        "page_numbers": ",".join(
+                            str(page) for page in chunk.page_numbers
+                        ),
+                        "section_title": chunk.section_title,
+                    }
+                    for chunk in chunks
+                ],
+            )
+            conn.commit()
 
     def get_by_document_id(
         self,
         document_id: UUID,
     ) -> tuple[DocumentChunk, ...]:
         """Return all chunks for a document in chunk order."""
-        cursor = self.connection.execute(
-            """
-            SELECT
-                chunk_index,
-                text,
-                page_numbers,
-                section_title
-            FROM document_chunks
-            WHERE document_id = ?
-            ORDER BY chunk_index ASC
-            """,
-            (str(document_id),),
-        )
-
-        rows = cursor.fetchall()
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                text("""
+                SELECT
+                    chunk_index,
+                    text,
+                    page_numbers,
+                    section_title
+                FROM document_chunks
+                WHERE document_id = :document_id
+                ORDER BY chunk_index ASC
+                """),
+                {"document_id": str(document_id)},
+            )
+            rows = cursor.fetchall()
 
         return tuple(
             DocumentChunk(
                 document_id=document_id,
-                chunk_index=row[0],
-                text=row[1],
+                chunk_index=row._mapping["chunk_index"],
+                text=row._mapping["text"],
                 page_numbers=tuple(
                     int(page)
-                    for page in row[2].split(",")
+                    for page in row._mapping["page_numbers"].split(",")
                     if page
                 ),
-                section_title=row[3],
+                section_title=row._mapping["section_title"],
             )
             for row in rows
         )
 
     def get_all(self) -> tuple[DocumentChunk, ...]:
         """Return all stored chunks in stable document and chunk order."""
-        cursor = self.connection.execute(
-            """
-            SELECT
-                document_id,
-                chunk_index,
-                text,
-                page_numbers,
-                section_title
-            FROM document_chunks
-            ORDER BY document_id ASC, chunk_index ASC
-            """
-        )
-
-        rows = cursor.fetchall()
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                text("""
+                SELECT
+                    document_id,
+                    chunk_index,
+                    text,
+                    page_numbers,
+                    section_title
+                FROM document_chunks
+                ORDER BY document_id ASC, chunk_index ASC
+                """)
+            )
+            rows = cursor.fetchall()
 
         return tuple(
             DocumentChunk(
-                document_id=UUID(row[0]),
-                chunk_index=row[1],
-                text=row[2],
+                document_id=UUID(row._mapping["document_id"]),
+                chunk_index=row._mapping["chunk_index"],
+                text=row._mapping["text"],
                 page_numbers=tuple(
                     int(page)
-                    for page in row[3].split(",")
+                    for page in row._mapping["page_numbers"].split(",")
                     if page
                 ),
-                section_title=row[4],
+                section_title=row._mapping["section_title"],
             )
             for row in rows
         )
+
     def delete_by_document_id(
         self,
         document_id: UUID,
     ) -> None:
         """Delete all chunks belonging to a document."""
-        self.connection.execute(
-            """
-            DELETE FROM document_chunks
-            WHERE document_id = ?
-            """,
-            (str(document_id),),
-        )
-        self.connection.commit()
+        with self._get_connection() as conn:
+            conn.execute(
+                text("""
+                DELETE FROM document_chunks
+                WHERE document_id = :document_id
+                """),
+                {"document_id": str(document_id)},
+            )
+            conn.commit()
 
     def count_by_document_id(
         self,
         document_id: UUID,
     ) -> int:
         """Return the number of chunks stored for a document."""
-        cursor = self.connection.execute(
-            """
-            SELECT COUNT(*)
-            FROM document_chunks
-            WHERE document_id = ?
-            """,
-            (str(document_id),),
-        )
-
-        return int(cursor.fetchone()[0])
-
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                text("""
+                SELECT COUNT(*)
+                FROM document_chunks
+                WHERE document_id = :document_id
+                """),
+                {"document_id": str(document_id)},
+            )
+            return int(cursor.fetchone()[0])

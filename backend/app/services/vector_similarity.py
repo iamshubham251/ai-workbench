@@ -25,9 +25,6 @@ def cosine_similarity(
     if norm_a == 0.0 or norm_b == 0.0:
         raise SimilarityError("zero vectors are not supported")
 
-    dot_product = sum(
-        value_a * value_b
-        for value_a, value_b in zip(vector_a, vector_b)
-    )
+    dot_product = sum(value_a * value_b for value_a, value_b in zip(vector_a, vector_b))
 
     return dot_product / (norm_a * norm_b)

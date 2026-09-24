@@ -2,7 +2,6 @@
 
 from app.ai.model_provider import ModelProvider
 from app.models.model import ModelRequest
-from app.models.model import ModelRequest
 from app.services.inspection_finding_extractor import (
     InspectionFindingExtractor,
 )
@@ -46,10 +45,7 @@ class GeminiInspectionAnalyzer:
         )
 
         if evidence:
-            prompt += (
-                "SUPPORTING SOP EVIDENCE:\n"
-                f"{evidence}\n"
-            )
+            prompt += f"SUPPORTING SOP EVIDENCE:\n{evidence}\n"
 
         try:
             response = self._model_provider.generate(

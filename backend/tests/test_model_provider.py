@@ -37,9 +37,7 @@ def test_fake_provider_implements_model_provider():
 def test_provider_generates_model_response():
     provider = FakeDocumentModel()
 
-    response = provider.generate(
-        ModelRequest(prompt="Summarize the report.")
-    )
+    response = provider.generate(ModelRequest(prompt="Summarize the report."))
 
     assert response.output == "Processed: Summarize the report."
     assert response.model_name == "fake-document-model"

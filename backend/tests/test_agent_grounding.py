@@ -26,9 +26,7 @@ class FakeRagService:
 
 def test_agent_manager_builds_grounded_prompt():
     manager = AgentManager(
-        model_router=ModelRouter(
-            providers=(DeterministicModelProvider(),)
-        ),
+        model_router=ModelRouter(providers=(DeterministicModelProvider(),)),
         context_builder=AgentContextBuilder(FakeRagService()),
     )
 
