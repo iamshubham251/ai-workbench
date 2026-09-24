@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     DATABASE_PATH: str = "./ai_workbench.db"
     DATABASE_URL: str | None = None
     REDIS_URL: str | None = None
+    JWT_SECRET_KEY: str = "super-secret-default-key-change-in-prod"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440 # 24 hours
     UPLOAD_DIR: str = "../data/uploads"
     OUTPUT_DIR: str = "../data/outputs"
     ALLOWED_ORIGINS: list[str] = [

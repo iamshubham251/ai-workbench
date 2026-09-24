@@ -1,8 +1,4 @@
-﻿const BACKEND_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
-).replace(/\/$/, '');
-
-const API_BASE = `${BACKEND_BASE_URL}/api`;
+import { API_BASE, fetchWithAuth } from './apiClient';
 
 export type ApprovalDecision = 'approve' | 'reject' | 'review';
 
@@ -22,7 +18,7 @@ export interface ApprovalWorkflowResponse {
 export async function executeApprovalWorkflow(
   request: ApprovalWorkflowRequest,
 ): Promise<ApprovalWorkflowResponse> {
-  const res = await fetch(`${API_BASE}/workflows/approval`, {
+  const res = await fetchWithAuth(`${API_BASE}/workflows/approval`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

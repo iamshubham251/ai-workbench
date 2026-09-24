@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Activity, Database, BookOpen, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, FileText, Activity, Database, BookOpen, Clock, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -8,6 +9,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
+  const { logout } = useAuth();
+
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <nav className="sidebar-nav">
@@ -49,7 +52,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       </nav>
       
       <div className="sidebar-footer">
-        <button className="icon-btn" onClick={onToggle} aria-label="Toggle Sidebar" style={{ width: '100%' }}>
+        <button className="sidebar-link w-full text-red-400 hover:text-red-300 hover:bg-red-400/10 justify-start" onClick={logout}>
+          <LogOut size={18} />
+          <span>Logout</span>
+        </button>
+        <button className="icon-btn mt-2" onClick={onToggle} aria-label="Toggle Sidebar" style={{ width: '100%' }}>
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </div>

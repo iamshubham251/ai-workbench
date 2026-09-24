@@ -11,6 +11,7 @@ from slowapi.util import get_remote_address
 
 from app.api.routes import (
     agents,
+    auth,
     documents,
     health,
     knowledge,
@@ -70,31 +71,44 @@ def create_app() -> FastAPI:
         DocumentRepository(db_path=settings.DATABASE_PATH)
         logger.info("Database initialized successfully.")
 
+    from fastapi import Depends
+    from app.dependencies import get_current_user
+
     app.include_router(health.router, prefix="/api")
+    app.include_router(
+        auth.router,
+        prefix="/api/auth",
+        tags=["auth"],
+    )
     app.include_router(
         documents.router,
         prefix="/api/documents",
         tags=["documents"],
+        dependencies=[Depends(get_current_user)]
     )
     app.include_router(
         knowledge.router,
         prefix="/api/knowledge",
         tags=["knowledge"],
+        dependencies=[Depends(get_current_user)]
     )
     app.include_router(
         knowledge_query.router,
         prefix="/api/knowledge",
         tags=["knowledge"],
+        dependencies=[Depends(get_current_user)]
     )
     app.include_router(
         agents.router,
         prefix="/api/agents",
         tags=["agents"],
+        dependencies=[Depends(get_current_user)]
     )
     app.include_router(
         workflows.router,
         prefix="/api/workflows",
         tags=["workflows"],
+        dependencies=[Depends(get_current_user)]
     )
 
     return app
