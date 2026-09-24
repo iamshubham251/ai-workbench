@@ -13,3 +13,7 @@ torch==2.14.0
 
 google-genai==2.22.0
 python-docx==1.2.0
+slowapi
+sentry-sdk
+prometheus-fastapi-instrumentator
+structlog

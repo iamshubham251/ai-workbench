@@ -6,5 +6,25 @@ export default defineConfig({
   plugins: [react()],
   server: {
     allowedHosts: ["ai-workbench-frontend.onrender.com"]
-  }
+  },
+  build: {
+    target: 'esnext',
+    outDir: 'dist',
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor-react';
+            }
+            return 'vendor';
+          }
+        },
+      },
+    },
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
 })
