@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 const demoScenarios = [
   {

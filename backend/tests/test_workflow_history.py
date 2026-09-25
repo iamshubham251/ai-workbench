@@ -23,7 +23,7 @@ def test_workflow_run_persistence(client):
         "/api/documents/upload",
         files={"file": ("test.pdf", file_bytes, "application/pdf")},
     )
-    assert upload_res.status_code == 200
+    assert upload_res.status_code == 201
     doc_id = upload_res.json()["id"]
 
     # Execute workflow (we expect 500 or 200 depending on FakeModelProvider, but here we can mock it)
