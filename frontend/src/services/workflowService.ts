@@ -22,6 +22,17 @@ export interface ApprovalWorkflowResponse {
   output_path: string | null;
 }
 
+export interface WorkflowRunHistoryItem {
+  id: string;
+  document_id: string | null;
+  document_name: string;
+  status: string;
+  decision: string | null;
+  has_output: boolean;
+  created_at: string;
+  completed_at: string | null;
+}
+
 export async function executeApprovalWorkflow(
   request: ApprovalWorkflowRequest,
 ): Promise<ApprovalWorkflowResponse> {
@@ -88,4 +99,12 @@ export async function downloadApprovalNote(outputPath: string): Promise<void> {
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(downloadUrl);
+}
+
+export async function getWorkflowHistory(): Promise<WorkflowRunHistoryItem[]> {
+  const res = await fetchWithAuth(`${API_BASE}/workflows/history`);
+  if (!res.ok) {
+    throw new Error('Failed to load workflow history');
+  }
+  return res.json() as Promise<WorkflowRunHistoryItem[]>;
 }

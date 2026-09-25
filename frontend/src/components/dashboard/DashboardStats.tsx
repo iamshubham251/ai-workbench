@@ -9,6 +9,7 @@ import {
   getDocuments,
   type DocumentRecord,
 } from '../../services/documentService';
+import { getWorkflowHistory, type WorkflowRunHistoryItem } from '../../services/workflowService';
 
 interface StatCard {
   label: string;
@@ -19,16 +20,21 @@ interface StatCard {
 
 export const DashboardStats: React.FC = () => {
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
+  const [history, setHistory] = useState<WorkflowRunHistoryItem[]>([]);
 
   useEffect(() => {
     let active = true;
 
-    const loadDocuments = async () => {
+    const loadData = async () => {
       try {
-        const records = await getDocuments();
+        const [records, historyData] = await Promise.all([
+          getDocuments(),
+          getWorkflowHistory().catch(() => []) // Gracefully degrade if history fails
+        ]);
 
         if (active) {
           setDocuments(records);
+          setHistory(historyData);
         }
       } catch {
         // Dashboard statistics are supplementary UI.
@@ -36,7 +42,7 @@ export const DashboardStats: React.FC = () => {
       }
     };
 
-    void loadDocuments();
+    void loadData();
 
     return () => {
       active = false;
@@ -69,9 +75,9 @@ export const DashboardStats: React.FC = () => {
       icon: <Layers3 size={18} />,
     },
     {
-      label: 'Workflow',
-      value: 'Ready',
-      description: 'Pipeline operational',
+      label: 'Workflows',
+      value: history.length.toString(),
+      description: 'Total pipeline runs',
       icon: <Workflow size={18} />,
     },
   ];
