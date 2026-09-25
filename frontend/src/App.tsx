@@ -3,8 +3,9 @@ import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { DocumentsPage } from './pages/DocumentsPage';
 import { KnowledgeBasePage } from './pages/KnowledgeBasePage';
+import { SOPLibraryPage } from './pages/SOPLibraryPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { ApprovalWorkflowPanel } from './components/dashboard/ApprovalWorkflowPanel';
-import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ArchitecturePage } from './pages/ArchitecturePage';
 import LoginPage from './pages/LoginPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -46,25 +47,8 @@ function AppRoutes() {
         
         <Route path="architecture" element={<ArchitecturePage />} />
 
-        <Route
-          path="sops"
-          element={
-            <PlaceholderPage
-              title="SOP Library"
-              description="Manage your Standard Operating Procedures."
-            />
-          }
-        />
-
-        <Route
-          path="history"
-          element={
-            <PlaceholderPage
-              title="History"
-              description="Review past workflow executions and agent activities."
-            />
-          }
-        />
+        <Route path="sops" element={<SOPLibraryPage />} />
+        <Route path="history" element={<HistoryPage />} />
       </Route>
     </Routes>
   );

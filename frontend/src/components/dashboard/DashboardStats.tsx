@@ -47,6 +47,8 @@ export const DashboardStats: React.FC = () => {
     (document) => document.extension.toLowerCase() === '.pdf',
   ).length;
 
+  const uniqueFormats = new Set(documents.map(d => d.extension.toLowerCase())).size;
+
   const stats: StatCard[] = [
     {
       label: 'Documents',
@@ -62,8 +64,8 @@ export const DashboardStats: React.FC = () => {
     },
     {
       label: 'Formats',
-      value: '2',
-      description: 'PDF, DOCX',
+      value: uniqueFormats.toString(),
+      description: 'Unique file types',
       icon: <Layers3 size={18} />,
     },
     {

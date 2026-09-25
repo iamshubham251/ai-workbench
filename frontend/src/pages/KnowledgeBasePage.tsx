@@ -63,48 +63,43 @@ export const KnowledgeBasePage: React.FC = () => {
       setError('');
       const result = await getDocuments();
       setDocuments(result);
+      setLoading(false);
+      setRefreshing(false);
 
-      const statusEntries = await Promise.all(
-        result.map(async (document) => {
-          try {
-            const status = await getIngestionStatus(document.id);
-
-            if (status.chunk_count > 0 && status.embedding_count > 0) {
-              return [
-                document.id,
-                {
-                  status: 'success' as const,
-                  chunkCount: status.chunk_count,
-                  embeddingCount: status.embedding_count,
-                  message: 'Indexed successfully.',
-                },
-              ] as const;
-            }
-
-            return [
-              document.id,
-              {
-                status: 'idle' as const,
+      // Fetch statuses progressively
+      for (const document of result) {
+        try {
+          const status = await getIngestionStatus(document.id);
+          
+          if (status.chunk_count > 0 && status.embedding_count > 0) {
+            setIngestion(prev => ({
+              ...prev,
+              [document.id]: {
+                status: 'success',
                 chunkCount: status.chunk_count,
                 embeddingCount: status.embedding_count,
-              },
-            ] as const;
-          } catch {
-            return null;
+                message: 'Indexed successfully.',
+              }
+            }));
+          } else {
+            setIngestion(prev => ({
+              ...prev,
+              [document.id]: {
+                status: 'idle',
+                chunkCount: status.chunk_count,
+                embeddingCount: status.embedding_count,
+              }
+            }));
           }
-        }),
-      );
-
-      setIngestion(
-        Object.fromEntries(
-          statusEntries.filter(
-            (entry): entry is NonNullable<typeof entry> => entry !== null,
-          ),
-        ),
-      );
+        } catch {
+          setIngestion(prev => ({
+            ...prev,
+            [document.id]: { status: 'error', message: 'Failed to load status' }
+          }));
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load documents.');
-    } finally {
       setLoading(false);
       setRefreshing(false);
     }
