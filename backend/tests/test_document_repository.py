@@ -58,9 +58,11 @@ def test_list_documents_by_role_returns_only_matching_documents(tmp_path):
 
 
 def test_list_documents_returns_all_documents_newest_first(tmp_path):
+    from datetime import timedelta
     repository = DocumentRepository(str(tmp_path / "documents.db"))
     first = make_document("first.pdf")
     second = make_document("second.pdf")
+    second.created_at = first.created_at + timedelta(seconds=1)
     repository.create(first)
     repository.create(second)
 

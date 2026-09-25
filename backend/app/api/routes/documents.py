@@ -39,6 +39,15 @@ def list_documents(
     return [DocumentResponse.model_validate(d.__dict__) for d in docs]
 
 
+@router.get("/sop", response_model=list[DocumentResponse])
+def list_sop_documents(
+    service: DocumentService = Depends(get_document_service),
+) -> list[DocumentResponse]:
+    docs = service.list_documents()
+    sops = [d for d in docs if d.role == DocumentRole.SOP]
+    return [DocumentResponse.model_validate(d.__dict__) for d in sops]
+
+
 @router.get("/{document_id}", response_model=DocumentResponse)
 def get_document(
     document_id: UUID,

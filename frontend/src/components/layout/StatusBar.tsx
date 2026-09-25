@@ -4,9 +4,9 @@ import { API_BASE } from '../../services/apiClient';
 
 interface HealthStatus {
   status: string;
-  model_configured: boolean;
+  gemini_api_configured: boolean;
   model_name: string;
-  knowledge_base_configured: boolean;
+  embedding_model_ready: boolean;
 }
 
 export const StatusBar: React.FC = () => {
@@ -28,13 +28,13 @@ export const StatusBar: React.FC = () => {
       <div className="statusbar-item">
         <Database size={14} />
         <span>
-          Knowledge Base: {health?.knowledge_base_configured ? 'Connected' : 'Not configured'}
+          Knowledge Base: {health?.embedding_model_ready ? 'Available' : 'Unavailable'}
         </span>
       </div>
       <div className="statusbar-item">
         <Cpu size={14} />
         <span>
-          Model: {health?.model_configured ? health.model_name : 'Not configured'}
+          Model: {health?.gemini_api_configured ? 'Configured' : 'Not configured'}
         </span>
       </div>
     </footer>

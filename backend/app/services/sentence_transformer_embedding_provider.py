@@ -8,6 +8,17 @@ from app.services.embedding_provider import (
     EmbeddingError,
 )
 
+# Initialize the model at module load time in the main thread
+# This avoids the "Cannot copy out of meta tensor" bug in PyTorch
+# when loading a model concurrently from a ThreadPool.
+_DEFAULT_MODEL_NAME = "all-MiniLM-L6-v2"
+try:
+    _GLOBAL_MODEL = SentenceTransformer(_DEFAULT_MODEL_NAME)
+    _GLOBAL_MODEL_ERROR = None
+except Exception as exc:
+    _GLOBAL_MODEL = None
+    _GLOBAL_MODEL_ERROR = exc
+
 
 class SentenceTransformerEmbeddingProvider:
     """Generate local embeddings using Sentence Transformers."""
@@ -19,12 +30,19 @@ class SentenceTransformerEmbeddingProvider:
         if not model_name.strip():
             raise ValueError("model_name must not be empty")
 
-        try:
-            self.model = SentenceTransformer(model_name)
-        except Exception as exc:
-            raise EmbeddingError(
-                f"Embedding model could not be loaded: {model_name}"
-            ) from exc
+        if model_name == _DEFAULT_MODEL_NAME:
+            if _GLOBAL_MODEL is None:
+                raise EmbeddingError(
+                    f"Embedding model could not be loaded: {model_name}"
+                ) from _GLOBAL_MODEL_ERROR
+            self.model = _GLOBAL_MODEL
+        else:
+            try:
+                self.model = SentenceTransformer(model_name)
+            except Exception as exc:
+                raise EmbeddingError(
+                    f"Embedding model could not be loaded: {model_name}"
+                ) from exc
 
         self.model_name = model_name
 
