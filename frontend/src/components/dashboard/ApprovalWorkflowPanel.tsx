@@ -19,7 +19,7 @@ import {
 } from '../../services/documentService';
 import {
   executeApprovalWorkflow,
-  getApprovalNoteDownloadUrl,
+  downloadApprovalNote,
   type ApprovalWorkflowResponse,
 } from '../../services/workflowService';
 
@@ -93,6 +93,7 @@ export const ApprovalWorkflowPanel: React.FC = () => {
   const [running, setRunning] = useState(false);
   const [stage, setStage] = useState<WorkflowStage>('idle');
   const [error, setError] = useState('');
+  const [downloading, setDownloading] = useState(false);
 
   const loadDocuments = async () => {
     setLoadingDocuments(true);
@@ -210,8 +211,17 @@ export const ApprovalWorkflowPanel: React.FC = () => {
       <AlertCircle size={20} />
     );
 
-  const downloadUrl = getApprovalNoteDownloadUrl(result?.output_path ?? null);
-
+  const handleDownload = async () => {
+    if (!result?.output_path) return;
+    try {
+      setDownloading(true);
+      await downloadApprovalNote(result.output_path);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Download failed');
+    } finally {
+      setDownloading(false);
+    }
+  };
   const outputFilename = result?.output_path
     ? result.output_path.split(/[\\/]/).pop()
     : null;
@@ -394,25 +404,47 @@ export const ApprovalWorkflowPanel: React.FC = () => {
             <span>{result.decision.toUpperCase()}</span>
           </div>
 
-          <div className="result-summary">
-            <h3>Approval Summary</h3>
-            <p>{result.summary}</p>
+          <div className="result-evidence-panel">
+            <h3>Evidence Chain</h3>
+            
+            <div className="evidence-section">
+              <h4>1. Inspection Findings</h4>
+              {result.findings && result.findings.length > 0 ? (
+                result.findings.map((f, i) => (
+                  <div className="evidence-item" key={i}>
+                    <span className={`severity-indicator severity-${f.severity?.toLowerCase() || 'none'}`}>
+                      {f.severity ? f.severity.charAt(0).toUpperCase() : '-'}
+                    </span>
+                    <p>{f.finding} {f.page_number && `(Page ${f.page_number})`}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="evidence-item"><p>No clear findings extracted.</p></div>
+              )}
+            </div>
+
+            {result.supporting_evidence.length > 0 && (
+              <div className="evidence-section">
+                <h4>2. Matched SOP Criteria</h4>
+                {result.supporting_evidence.map((evidence, index) => (
+                  <div className="evidence-item" key={`${index}-${evidence}`}>
+                    <span>§</span>
+                    <p>{evidence}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="evidence-section ai-reasoning">
+              <h4>3. AI Decision Rationale</h4>
+              <div className="evidence-item reasoning-item">
+                <Sparkles size={16} className="reasoning-icon" />
+                <p>{result.summary}</p>
+              </div>
+            </div>
           </div>
 
-          {result.supporting_evidence.length > 0 && (
-            <div className="result-evidence">
-              <h3>Supporting SOP Evidence</h3>
-
-              {result.supporting_evidence.map((evidence, index) => (
-                <div className="evidence-item" key={`${index}-${evidence}`}>
-                  <span>{index + 1}</span>
-                  <p>{evidence}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {downloadUrl && outputFilename && (
+          {result.output_path && outputFilename && (
             <div className="result-output">
               <FileText size={18} />
 
@@ -421,14 +453,15 @@ export const ApprovalWorkflowPanel: React.FC = () => {
                 <span>{outputFilename}</span>
               </div>
 
-              <a
+              <button
+                type="button"
                 className="download-action"
-                href={downloadUrl}
-                download={outputFilename}
+                onClick={() => void handleDownload()}
+                disabled={downloading}
               >
-                <Download size={16} />
-                Download
-              </a>
+                {downloading ? <Loader2 size={16} className="spin" /> : <Download size={16} />}
+                {downloading ? 'Downloading...' : 'Download'}
+              </button>
             </div>
           )}
         </div>

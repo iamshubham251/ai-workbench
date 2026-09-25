@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { login as loginService, register as registerService, logout as logoutService } from '../services/authService';
-
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import { login as loginService, register as registerService, logout as logoutService } from "../services/authService";
 interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;

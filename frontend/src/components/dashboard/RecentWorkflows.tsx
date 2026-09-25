@@ -1,50 +1,51 @@
 import React from 'react';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Download, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 
-const mockWorkflows = [
+const demoScenarios = [
   {
-    id: 1,
-    title: 'Inspection Report Analysis',
-    status: 'Completed',
-    input: 'inspection_report.pdf',
-    output: 'approval_note.docx'
+    id: 'approve',
+    title: '🟢 Pipeline Alpha (Approve)',
+    description: 'Clean pass. Pressure and temp are within SOP thresholds.',
+    inspection: '/demo-fixtures/demo_inspection_approve.pdf',
+    sop: '/demo-fixtures/demo_sop_approve.pdf'
   },
   {
-    id: 2,
-    title: 'SOP Compliance Check',
-    status: 'Completed',
-    input: 'maintenance_report.pdf',
-    output: 'compliance_report.docx'
+    id: 'review',
+    title: '🟡 Generator Beta (Review)',
+    description: 'Missing voltage data. SOP requires manual review.',
+    inspection: '/demo-fixtures/demo_inspection_review.pdf',
+    sop: '/demo-fixtures/demo_sop_review.pdf'
   },
   {
-    id: 3,
-    title: 'Document Extraction',
-    status: 'Completed',
-    input: 'site_report.pdf',
-    output: 'extracted_data.xlsx'
+    id: 'reject',
+    title: '🔴 Boiler Gamma (Reject)',
+    description: 'Hairline fracture detected. SOP dictates immediate failure.',
+    inspection: '/demo-fixtures/demo_inspection_reject.pdf',
+    sop: '/demo-fixtures/demo_sop_reject.pdf'
   }
 ];
 
 export const RecentWorkflows: React.FC = () => {
   return (
     <div>
-      <div className="section-title">Recent Workflows</div>
+      <div className="section-title">Demo Scenarios</div>
+      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+        Download these synthetic fixtures and upload them to test the workflow logic.
+      </p>
       <div className="workflows-list">
-        {mockWorkflows.map(workflow => (
-          <div key={workflow.id} className="workflow-item">
+        {demoScenarios.map(scenario => (
+          <div key={scenario.id} className="workflow-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
             <div className="workflow-info">
-              <h4>{workflow.title}</h4>
-              <div className="workflow-meta">
-                <span className="badge badge-success">
-                  <CheckCircle2 size={12} style={{ marginRight: '4px' }} />
-                  {workflow.status}
-                </span>
-              </div>
+              <h4 style={{ margin: 0 }}>{scenario.title}</h4>
             </div>
-            <div className="workflow-meta">
-              <span>{workflow.input}</span>
-              <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
-              <span>{workflow.output}</span>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>{scenario.description}</p>
+            <div className="workflow-meta" style={{ marginTop: '8px', display: 'flex', gap: '12px' }}>
+              <a href={scenario.inspection} download className="badge badge-outline" style={{ display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', color: 'inherit' }}>
+                <Download size={12} /> Inspection Report
+              </a>
+              <a href={scenario.sop} download className="badge badge-outline" style={{ display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', color: 'inherit' }}>
+                <Download size={12} /> SOP Requirements
+              </a>
             </div>
           </div>
         ))}

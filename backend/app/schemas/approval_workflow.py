@@ -6,6 +6,12 @@ from pydantic import BaseModel, Field
 
 from app.models.approval_workflow import ApprovalDecision
 
+class InspectionFindingSchema(BaseModel):
+    finding: str
+    severity: str = ""
+    page_number: int | None = None
+
+
 
 class ApprovalWorkflowRequest(BaseModel):
     """Request body for executing an approval workflow."""
@@ -21,4 +27,5 @@ class ApprovalWorkflowResponse(BaseModel):
     decision: ApprovalDecision
     summary: str
     supporting_evidence: tuple[str, ...] = ()
+    findings: tuple[InspectionFindingSchema, ...] = ()
     output_path: str | None = None

@@ -1,4 +1,4 @@
-import { API_BASE, fetchWithAuth } from './apiClient';
+import { API_BASE } from './apiClient';
 
 export interface TokenResponse {
   access_token: string;

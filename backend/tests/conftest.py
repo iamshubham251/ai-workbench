@@ -11,14 +11,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config.settings import settings
-from app.dependencies import get_document_service
+from app.dependencies import get_document_service, get_current_user
 from app.main import create_app
+from app.models.user import User
 from app.repositories.document_repository import DocumentRepository
 from app.services.document_service import DocumentService
 from app.storage.local_storage import LocalStorage
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def tmp_env(tmp_path: Path, monkeypatch):
     """
     Patch settings so each test gets its own upload dir and SQLite DB.
@@ -27,9 +28,13 @@ def tmp_env(tmp_path: Path, monkeypatch):
     upload_dir = tmp_path / "uploads"
     upload_dir.mkdir()
 
+    monkeypatch.setattr(settings, "DATABASE_URL", "")
     monkeypatch.setattr(settings, "DATABASE_PATH", db_file)
     monkeypatch.setattr(settings, "UPLOAD_DIR", str(upload_dir))
     monkeypatch.setattr(settings, "MAX_UPLOAD_SIZE_MB", 1)
+
+    from app.database import reset_engine
+    reset_engine()
 
     return {"db": db_file, "uploads": upload_dir}
 
@@ -46,9 +51,32 @@ def client(tmp_env):
             repository=repo, storage=storage, max_upload_bytes=max_bytes
         )
 
-    app = create_app()
+    from app.main import app
     app.dependency_overrides[get_document_service] = _override_service
+    
+    # Create a real test user and valid token to bypass auth legitimately
+    from app.models.user import User
+    from app.repositories.user_repository import UserRepository
+    from app.services.auth_service import AuthService
+    from app.database import get_connection
+    from uuid import uuid4
+    
+    test_user = User(id=uuid4(), email="test@example.com", hashed_password="pwd")
+    
+    with get_connection() as conn:
+        user_repo = UserRepository()
+        # Prevent UniqueViolation if the user already exists in shared DB
+        try:
+            test_user = user_repo.create(email=test_user.email, hashed_password=test_user.hashed_password)
+        except Exception as e:
+            print(f"Exception during user creation: {e}")
+            test_user = user_repo.get_by_email(test_user.email)
+            
+        auth_service = AuthService(user_repo)
+        token = auth_service.create_access_token({"sub": test_user.email})
+
     with TestClient(app) as c:
+        c.headers.update({"Authorization": f"Bearer {token}"})
         yield c
 
 

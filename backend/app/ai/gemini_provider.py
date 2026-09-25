@@ -1,3 +1,4 @@
+import time
 from google import genai
 
 from app.ai.model_provider import ModelProviderError
@@ -39,21 +40,33 @@ class GeminiModelProvider:
         )
 
     def generate(self, request: ModelRequest) -> ModelResponse:
-        try:
-            interaction = self._client.interactions.create(
-                model=self._model_name,
-                input=request.prompt,
-            )
-            output = interaction.output_text
+        max_retries = 2
+        base_delay = 1.0
 
-            if not output or not output.strip():
-                raise ModelProviderError("Gemini returned an empty response.")
+        for attempt in range(max_retries + 1):
+            try:
+                # Use standard google-genai v2 syntax
+                response = self._client.models.generate_content(
+                    model=self._model_name,
+                    contents=request.prompt,
+                )
+                output = response.text
 
-            return ModelResponse(
-                output=output.strip(),
-                model_name=self._model_name,
-            )
-        except ModelProviderError:
-            raise
-        except Exception as exc:
-            raise ModelProviderError(f"Gemini generation failed: {exc}") from exc
+                return ModelResponse(
+                    output=(output.strip() if output else ""),
+                    model_name=self._model_name,
+                )
+            except ModelProviderError:
+                raise
+            except Exception as exc:
+                error_str = str(exc).lower()
+                is_transient = any(
+                    term in error_str 
+                    for term in ("503", "unavailable", "429", "too many requests", "timeout")
+                )
+                
+                if is_transient and attempt < max_retries:
+                    time.sleep(base_delay * (2 ** attempt))
+                    continue
+                
+                raise ModelProviderError(f"Gemini generation failed: {exc}") from exc

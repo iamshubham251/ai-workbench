@@ -4,27 +4,32 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+
   server: {
-    allowedHosts: ["ai-workbench-frontend.onrender.com"]
+    allowedHosts: ['ai-workbench-frontend.onrender.com'],
   },
+
   build: {
     target: 'esnext',
     outDir: 'dist',
     minify: 'esbuild',
+
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor-react';
+            if (
+              id.includes('react') ||
+              id.includes('react-dom') ||
+              id.includes('react-router-dom')
+            ) {
+              return 'vendor-react'
             }
-            return 'vendor';
+
+            return 'vendor'
           }
         },
       },
     },
-  },
-  esbuild: {
-    drop: ['console', 'debugger'],
   },
 })

@@ -193,10 +193,11 @@ The provider abstraction (`ModelRouter` / `ModelProvider`) means a new model —
 ## Component Breakdown
 
 ### Frontend
-- React 19 + TypeScript + Vite 8, routed with `react-router-dom`
-- **Dashboard** (implemented): upload dropzone, the approval workflow panel (run the flagship workflow against an uploaded document and download the resulting DOCX), quick actions, recent workflows, and an activity panel
-- **Documents** (implemented): a live document library backed by `GET /api/documents`
-- **Workflows / Knowledge / SOPs / History** pages exist as routed placeholders today — the underlying APIs work, but these dedicated UIs are not yet built out (see [Roadmap](#roadmap))
+- React 19 + TypeScript + Vite, routed with `react-router-dom`
+- **Dashboard**: Upload dropzone, interactive **Demo Scenarios**, the Approval Workflow timeline panel, and real-time operational statistics. Includes an **Evidence Chain** panel for LLM transparency.
+- **Documents**: A live document library backed by `GET /api/documents`
+- **Architecture**: Interactive data-flow and system architecture visualization.
+- **Workflows / Knowledge / SOPs / History** pages exist as routed placeholders.
 
 ### Backend
 - FastAPI application factory (`app/main.py`) with CORS configured from settings

@@ -27,23 +27,22 @@ class FakeModelProvider:
         )
 
 
-def test_approval_api_returns_decision_and_output():
+def test_approval_api_returns_decision_and_output(client):
     service = ApprovalWorkflowService(
         inspection_analyzer=GeminiInspectionAnalyzer(
             FakeModelProvider(),
         ),
     )
 
-    app.dependency_overrides[get_approval_workflow_service] = lambda: service
+    client.app.dependency_overrides[get_approval_workflow_service] = lambda: service
 
     try:
-        with TestClient(app) as client:
-            response = client.post(
-                "/api/workflows/approval",
-                json={
-                    "instruction": "Emergency stop inspection completed.",
-                },
-            )
+        response = client.post(
+            "/api/workflows/approval",
+            json={
+                "instruction": "Emergency stop inspection completed.",
+            },
+        )
 
         assert response.status_code == 200
 
@@ -61,4 +60,4 @@ def test_approval_api_returns_decision_and_output():
         assert output_path.parent == Path(settings.OUTPUT_DIR)
 
     finally:
-        app.dependency_overrides.clear()
+        client.app.dependency_overrides.pop(get_approval_workflow_service, None)

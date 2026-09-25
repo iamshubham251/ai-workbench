@@ -53,7 +53,7 @@ class GeminiInspectionAnalyzer:
                     prompt=prompt,
                 )
             )
-        except ValueError as exc:
+        except Exception as exc:
             if "output must not be empty" in str(exc):
                 return ()
             raise

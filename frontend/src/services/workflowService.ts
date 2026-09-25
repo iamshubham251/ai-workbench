@@ -7,11 +7,18 @@ export interface ApprovalWorkflowRequest {
   document_ids: string[];
 }
 
+export interface InspectionFinding {
+  finding: string;
+  severity: string;
+  page_number: number | null;
+}
+
 export interface ApprovalWorkflowResponse {
   workflow_id: string;
   decision: ApprovalDecision;
   summary: string;
   supporting_evidence: string[];
+  findings: InspectionFinding[];
   output_path: string | null;
 }
 
@@ -53,4 +60,32 @@ export function getApprovalNoteDownloadUrl(
   }
 
   return `${API_BASE}/workflows/approval/output/${encodeURIComponent(filename)}`;
+}
+
+export async function downloadApprovalNote(outputPath: string): Promise<void> {
+  const url = getApprovalNoteDownloadUrl(outputPath);
+  if (!url) {
+    throw new Error('Invalid output path');
+  }
+
+  const res = await fetchWithAuth(url, {
+    method: 'GET',
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to download document');
+  }
+
+  const blob = await res.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  
+  const filename = outputPath.split(/[\\/]/).pop() ?? 'download.docx';
+  link.download = filename;
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(downloadUrl);
 }

@@ -3,6 +3,7 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from datetime import datetime
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
@@ -45,24 +46,51 @@ class ApprovalNoteGenerator:
 
             document.add_paragraph()
 
+            date_paragraph = document.add_paragraph()
+            date_paragraph.add_run("Date Generated: ").bold = True
+            date_paragraph.add_run(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
             workflow_paragraph = document.add_paragraph()
             workflow_paragraph.add_run("Workflow ID: ").bold = True
             workflow_paragraph.add_run(str(result.workflow_id))
 
             decision_paragraph = document.add_paragraph()
-            decision_paragraph.add_run("Decision: ").bold = True
-            decision_paragraph.add_run(result.decision.value.upper())
+            decision_paragraph.add_run("AI Recommendation: ").bold = True
+            decision_run = decision_paragraph.add_run(result.decision.value.upper())
+            decision_run.bold = True
 
-            document.add_heading("Summary", level=2)
+            document.add_heading("1. Executive Summary", level=2)
             document.add_paragraph(result.summary)
 
-            document.add_heading("Supporting Evidence", level=2)
+            document.add_heading("2. Inspection Findings", level=2)
+            if hasattr(result, 'findings') and result.findings:
+                table = document.add_table(rows=1, cols=3)
+                table.style = 'Table Grid'
+                hdr_cells = table.rows[0].cells
+                hdr_cells[0].text = 'Severity'
+                hdr_cells[1].text = 'Finding'
+                hdr_cells[2].text = 'Page'
+                for f in result.findings:
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = f.severity.upper() if f.severity else '-'
+                    row_cells[1].text = f.finding
+                    row_cells[2].text = str(f.page_number) if f.page_number else '-'
+            else:
+                document.add_paragraph("No specific findings extracted.")
+
+            document.add_heading("3. Supporting SOP Evidence", level=2)
 
             if result.supporting_evidence:
                 for evidence in result.supporting_evidence:
                     document.add_paragraph(evidence, style="List Bullet")
             else:
                 document.add_paragraph("No supporting evidence provided.")
+                
+            document.add_heading("4. Human Review (Sign-off)", level=2)
+            document.add_paragraph("Reviewer Name: ___________________________")
+            document.add_paragraph("Signature: _______________________________")
+            document.add_paragraph("Date: ____________________________________")
+            document.add_paragraph("Final Decision:  [ ] Approve   [ ] Reject")
 
             with NamedTemporaryFile(
                 suffix=".docx",

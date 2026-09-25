@@ -25,6 +25,7 @@ class ApprovalDecisionService:
                 decision=ApprovalDecision.REVIEW,
                 summary="No inspection findings were provided; manual review is required.",
                 supporting_evidence=supporting_evidence,
+                findings=findings,
             )
 
         normalized_severities = {
@@ -39,6 +40,7 @@ class ApprovalDecisionService:
                 decision=ApprovalDecision.REJECT,
                 summary="The inspection contains a high-severity finding and cannot be automatically approved.",
                 supporting_evidence=supporting_evidence,
+                findings=findings,
             )
 
         if self.MEDIUM_SEVERITY in normalized_severities:
@@ -47,6 +49,7 @@ class ApprovalDecisionService:
                 decision=ApprovalDecision.REVIEW,
                 summary="The inspection contains a medium-severity finding and requires manual review.",
                 supporting_evidence=supporting_evidence,
+                findings=findings,
             )
 
         return ApprovalWorkflowResult(
@@ -54,4 +57,5 @@ class ApprovalDecisionService:
             decision=ApprovalDecision.APPROVE,
             summary="No high- or medium-severity findings were identified; the inspection can be approved.",
             supporting_evidence=supporting_evidence,
+            findings=findings,
         )

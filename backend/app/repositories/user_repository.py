@@ -20,7 +20,7 @@ class UserRepository:
                     id VARCHAR(36) PRIMARY KEY,
                     email VARCHAR(255) UNIQUE NOT NULL,
                     hashed_password TEXT NOT NULL,
-                    is_active BOOLEAN NOT NULL DEFAULT 1
+                    is_active BOOLEAN NOT NULL
                 )
                 """)
             )

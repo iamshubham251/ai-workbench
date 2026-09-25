@@ -62,14 +62,14 @@ export const DashboardStats: React.FC = () => {
     },
     {
       label: 'Formats',
-      value: '4',
-      description: 'PDF, DOCX, XLSX, PPTX',
+      value: '2',
+      description: 'PDF, DOCX',
       icon: <Layers3 size={18} />,
     },
     {
       label: 'Workflow',
       value: 'Ready',
-      description: 'Inspection approval',
+      description: 'Pipeline operational',
       icon: <Workflow size={18} />,
     },
   ];

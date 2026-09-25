@@ -41,6 +41,7 @@ class ApprovalWorkflowResult:
     decision: ApprovalDecision
     summary: str
     supporting_evidence: tuple[str, ...] = ()
+    findings: tuple[InspectionFinding, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.summary.strip():

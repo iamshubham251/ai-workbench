@@ -7,16 +7,14 @@ from app.dependencies import get_agent_manager
 from app.main import app
 
 
-def test_agent_execute_api():
+def test_agent_execute_api(client):
     manager = AgentManager(
         model_router=ModelRouter(providers=(DeterministicModelProvider(),))
     )
 
-    app.dependency_overrides[get_agent_manager] = lambda: manager
+    client.app.dependency_overrides[get_agent_manager] = lambda: manager
 
     try:
-        client = TestClient(app)
-
         response = client.post(
             "/api/agents/execute",
             json={
@@ -32,4 +30,4 @@ def test_agent_execute_api():
         assert body["task_id"]
         assert body["error"] is None
     finally:
-        app.dependency_overrides.clear()
+        client.app.dependency_overrides.pop(get_agent_manager, None)

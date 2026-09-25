@@ -5,6 +5,7 @@ import { DocumentsPage } from './pages/DocumentsPage';
 import { KnowledgeBasePage } from './pages/KnowledgeBasePage';
 import { ApprovalWorkflowPanel } from './components/dashboard/ApprovalWorkflowPanel';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { ArchitecturePage } from './pages/ArchitecturePage';
 import LoginPage from './pages/LoginPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './App.css';
@@ -42,6 +43,8 @@ function AppRoutes() {
         />
 
         <Route path="knowledge" element={<KnowledgeBasePage />} />
+        
+        <Route path="architecture" element={<ArchitecturePage />} />
 
         <Route
           path="sops"

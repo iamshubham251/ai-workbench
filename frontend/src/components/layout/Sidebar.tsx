@@ -43,6 +43,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
         </div>
 
         <div>
+          <div className="sidebar-section-title">System</div>
+          <NavLink to="/architecture" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <Database size={18} />
+            <span>Architecture</span>
+          </NavLink>
+        </div>
+
+        <div>
           <div className="sidebar-section-title">Activity</div>
           <NavLink to="/history" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <Clock size={18} />

@@ -1,19 +1,27 @@
 from sqlalchemy import create_engine
 from app.config.settings import settings
 
-db_url = settings.DATABASE_URL
-if not db_url:
-    # Fallback to SQLite
-    db_url = f"sqlite:///{settings.DATABASE_PATH}"
+_engine = None
 
-# For SQLite, we need check_same_thread=False
-connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
-
-engine = create_engine(
-    db_url,
-    connect_args=connect_args,
-    pool_pre_ping=True
-)
+def _get_engine():
+    global _engine
+    if _engine is None:
+        db_url = settings.DATABASE_URL
+        if not db_url:
+            db_url = f"sqlite:///{settings.DATABASE_PATH}"
+        connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
+        _engine = create_engine(
+            db_url,
+            connect_args=connect_args,
+            pool_pre_ping=True
+        )
+    return _engine
 
 def get_connection():
-    return engine.connect()
+    return _get_engine().connect()
+
+def reset_engine():
+    global _engine
+    if _engine is not None:
+        _engine.dispose()
+        _engine = None

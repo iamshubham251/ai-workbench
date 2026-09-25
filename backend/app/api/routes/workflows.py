@@ -41,6 +41,10 @@ def execute_approval_workflow(
         decision=result.decision,
         summary=result.summary,
         supporting_evidence=result.supporting_evidence,
+        findings=tuple(
+            {"finding": f.finding, "severity": f.severity, "page_number": f.page_number}
+            for f in result.findings
+        ),
         output_path=str(output_path) if output_path.exists() else None,
     )
 

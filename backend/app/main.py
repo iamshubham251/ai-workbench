@@ -18,6 +18,8 @@ from app.api.routes import (
     knowledge_query,
     workflows,
 )
+from app.ai.model_provider import ModelProviderError
+from app.services.pypdf_processor import PdfProcessingError
 from app.config.settings import settings
 from app.repositories.document_repository import DocumentRepository
 
@@ -51,6 +53,57 @@ def create_app() -> FastAPI:
     limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    from fastapi.responses import JSONResponse
+    from fastapi import Request
+
+    @app.exception_handler(ModelProviderError)
+    async def model_provider_exception_handler(request: Request, exc: ModelProviderError):
+        logger.error("Model provider error", exc_info=exc)
+        
+        error_str = str(exc).lower()
+        is_transient = any(
+            term in error_str for term in ("503", "unavailable", "429", "timeout")
+        )
+
+        if is_transient:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "detail": "The AI provider is temporarily unavailable. Please try again shortly.",
+                    "code": "MODEL_PROVIDER_UNAVAILABLE"
+                },
+            )
+
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": "An unexpected error occurred with the AI provider.",
+                "code": "MODEL_PROVIDER_ERROR"
+            },
+        )
+
+    @app.exception_handler(PdfProcessingError)
+    async def pdf_processing_exception_handler(request: Request, exc: PdfProcessingError):
+        logger.error("PDF processing error", exc_info=exc)
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": "The provided PDF document could not be processed.",
+                "code": "PDF_PROCESSING_ERROR"
+            },
+        )
+
+    @app.exception_handler(ValueError)
+    async def value_error_exception_handler(request: Request, exc: ValueError):
+        logger.warning("Client value error", exc_info=exc)
+        return JSONResponse(
+            status_code=400,
+            content={
+                "detail": str(exc),
+                "code": "INVALID_REQUEST"
+            },
+        )
 
     # In production, ALLOWED_ORIGINS should be strictly defined in .env
     app.add_middleware(
